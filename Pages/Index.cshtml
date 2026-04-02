@@ -1,0 +1,195 @@
+@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Grand Haven - Luxury Hotel";
+}
+@section Styles {
+    <link rel="stylesheet" href="~/css/index.css" />
+}
+
+<!-- Hero Section with Background Image -->
+<div class="hero-with-image" style="background-image: url('/Images/hero-hotel.jpg');">
+    <div class="hero-overlay"></div>
+    <div class="container hero-content">
+        <h1>Welcome to Grand Haven</h1>
+        <p>Discover unparalleled luxury and comfort. Book by the hour or by the night.</p>
+        <a href="/Rooms" class="btn btn-primary">Book Now →</a>
+    </div>
+</div>
+
+<div class="features">
+    <div class="container">
+        <h2 class="section-title">Why Choose Us</h2>
+        <p class="section-subtitle">Experience the best hospitality in town</p>
+        <div class="features-grid">
+            <div class="feature-card card">
+                <div class="feature-icon">
+                    <img src="/Images/easy-booking.jpg" alt="Easy Booking" style="width:100%;height:150px;object-fit:cover;border-radius:8px;" onerror="this.src='https://placehold.co/300x150/e8f4f8/0066cc?text=Easy+Booking'">
+                </div>
+                <h3>Easy Booking</h3>
+                <p>Book your stay in just a few clicks with real-time availability.</p>
+            </div>
+            <div class="feature-card card">
+                <div class="feature-icon">
+                    <img src="/Images/premium-rooms.jpg" alt="Premium Rooms" style="width:100%;height:150px;object-fit:cover;border-radius:8px;" onerror="this.src='https://placehold.co/300x150/f0e6ff/6b3fa0?text=Premium+Rooms'">
+                </div>
+                <h3>Premium Rooms</h3>
+                <p>From standard to luxury suites, find the perfect room for you.</p>
+            </div>
+            <div class="feature-card card">
+                <div class="feature-icon">
+                    <img src="/Images/secure-payments.jpg" alt="Secure Payments" style="width:100%;height:150px;object-fit:cover;border-radius:8px;" onerror="this.src='https://placehold.co/300x150/ffe6e6/cc0000?text=Secure+Payments'">
+                </div>
+                <h3>Secure Payments</h3>
+                <p>Your transactions are protected with industry-standard security.</p>
+            </div>
+            <div class="feature-card card">
+                <div class="feature-icon">
+                    <img src="/Images/flexible-booking.jpg" alt="Flexible Booking" style="width:100%;height:150px;object-fit:cover;border-radius:8px;" onerror="this.src='https://placehold.co/300x150/e8f5e9/2e7d32?text=Flexible+Booking'">
+                </div>
+                <h3>Hourly & Daily</h3>
+                <p>Flexible booking – stay for a few hours or several nights.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="events">
+    <div class="container">
+        <h2 class="section-title">Upcoming Events</h2>
+        <p class="section-subtitle">Experience unforgettable moments — book a room and enjoy exclusive access</p>
+        <div class="events-grid">
+            <!-- Event 1 - Live Jazz Night -->
+            <div class="event-card">
+                <div class="event-image">
+                    <img src="/images/talent.jpg"
+                         alt="Talent Show"
+                         onerror="this.src='https://placehold.co/400x200/e8f4f8/0066cc?text=Talent+Show'">
+                </div>
+                <div class="event-content">
+                    <div class="event-date">Every Friday - 7:00 PM</div>
+                    <h3>Talent Show</h3>
+                    <p>Enjoy talent performances in our Main Hall while sipping signature cocktails. Book a room and get complimentary entry.</p>
+                    <div class="event-location">📍 Main Hall</div>
+                </div>
+            </div>
+
+            <!-- Event 2 - Wine & Dine Weekend -->
+            <div class="event-card">
+                <div class="event-image">
+                    <img src="/Images/culture.jpg"
+                         alt="Culture Night"
+                         onerror="this.src='https://placehold.co/400x200/f0e6ff/6b3fa0?text=Culture+Night'">
+                </div>
+                <div class="event-content">
+                    <div class="event-date">Every Saturday 7pm</div>
+                    <h3>Culture Night</h3>
+                    <p>An exclusive Cultural performance.</p>
+                    <div class="event-location">📍 Main Hall</div>
+                </div>
+            </div>
+
+            <!-- Event 3 - Spa Wellness Retreat -->
+            <div class="event-card">
+                <div class="event-image">
+                    <img src="/Images/event-spa.jpg"
+                         alt="Spa Wellness Retreat"
+                         onerror="this.src='https://placehold.co/400x200/ffe6e6/cc0000?text=Spa+Wellness'">
+                </div>
+                <div class="event-content">
+                    <div class="event-date">April 18–20, 2026</div>
+                    <h3>Spa Wellness Retreat</h3>
+                    <p>A full weekend of relaxation with guided meditation, spa treatments, and healthy cuisine. Suite guests enjoy a free couples massage.</p>
+                    <div class="event-location">📍 Spa Center</div>
+                </div>
+            </div>
+
+            <!-- Event 4 - Anniversary Gala -->
+            <div class="event-card">
+                <div class="event-image">
+                    <img src="/Images/event-gala.jpg"
+                         alt="Grand Haven Anniversary Gala"
+                         onerror="this.src='https://placehold.co/400x200/e8f5e9/2e7d32?text=Anniversary+Gala'">
+                </div>
+                <div class="event-content">
+                    <div class="event-date">May 1, 2026 - 6:00 PM</div>
+                    <h3>Grand Haven Anniversary Gala</h3>
+                    <p>Celebrate our 10th anniversary with a black-tie gala, live band, and fireworks. All overnight guests are invited free of charge.</p>
+                    <div class="event-location">📍 Grand Ballroom</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="featured-rooms">
+    <div class="container">
+        <h2 class="section-title">Featured Rooms</h2>
+        <p class="section-subtitle">Luxury accommodations for every need</p>
+        <div class="rooms-grid">
+            <!-- Room 101 -->
+            <div class="room-card card">
+                <div class="room-image-container">
+                    <img src="/Images/room101.jpg"
+                         alt="Room 101 - Standard Room"
+                         onerror="this.src='https://placehold.co/400x300/e9ecef/1a1a1a?text=Room+101'">
+                    <span class="image-badge">Standard</span>
+                </div>
+                <div class="room-info">
+                    <h3>Room 101</h3>
+                    <div class="room-price">$120 <small>/night</small></div>
+                    <p>Comfortable room with modern amenities, perfect for business...</p>
+                    <div class="room-amenities">
+                        <span>📶 Wi-Fi</span>
+                        <span>📺 TV</span>
+                        <span>❄️ AC</span>
+                    </div>
+                    <a href="/Booking" class="btn btn-primary btn-block">Book Now</a>
+                </div>
+            </div>
+
+            <!-- Room 102 -->
+            <div class="room-card card">
+                <div class="room-image-container">
+                    <img src="/Images/room101.jpg"
+                         alt="Room 102 - Standard Room"
+                         onerror="this.src='https://placehold.co/400x300/e9ecef/1a1a1a?text=Room+102'">
+                    <span class="image-badge">Standard</span>
+                </div>
+                <div class="room-info">
+                    <h3>Room 102</h3>
+                    <div class="room-price">$120 <small>/night</small></div>
+                    <p>Comfortable room with modern amenities, perfect for business...</p>
+                    <div class="room-amenities">
+                        <span>📶 Wi-Fi</span>
+                        <span>📺 TV</span>
+                        <span>❄️ AC</span>
+                    </div>
+                    <a href="/Booking" class="btn btn-primary btn-block">Book Now</a>
+                </div>
+            </div>
+
+            <!-- Room 201 -->
+            <div class="room-card card">
+                <div class="room-image-container">
+                    <img src="/Images/room201.jpg"
+                         alt="Room 201 - Deluxe Room"
+                         onerror="this.src='https://placehold.co/400x300/f0e6ff/6b3fa0?text=Room+201'">
+                    <span class="image-badge">Deluxe</span>
+                </div>
+                <div class="room-info">
+                    <h3>Room 201</h3>
+                    <div class="room-price">$220 <small>/night</small></div>
+                    <p>Spacious deluxe room with stunning city views...</p>
+                    <div class="room-amenities">
+                        <span>📶 Wi-Fi</span>
+                        <span>📺 TV</span>
+                        <span>❄️ AC</span>
+                        <span>🍸 Mini-bar</span>
+                    </div>
+                    <a href="/Booking" class="btn btn-primary btn-block">Book Now</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

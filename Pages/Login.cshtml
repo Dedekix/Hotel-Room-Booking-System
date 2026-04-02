@@ -1,0 +1,43 @@
+@page
+@model HotelBookingSystem.Pages.LoginModel
+@{
+    ViewData["Title"] = "Sign In - Grand Haven";
+}
+@section Styles {
+    <link rel="stylesheet" href="~/css/login.css" />
+}
+
+<div class="login-page">
+    <div class="login-card">
+        <h2>Grand Haven</h2>
+        <p class="login-subtitle">Sign in to your account</p>
+
+        @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+        {
+            <div class="alert alert-error" style="background:#fee;color:#c00;padding:12px;border-radius:8px;margin-bottom:20px;">
+                ❌ @Model.ErrorMessage
+            </div>
+        }
+
+        <form method="post" class="login-form">
+            <div class="form-group">
+                <label>Email Address</label>
+                <input type="email" name="Email" placeholder="john@email.com" required>
+            </div>
+            <div class="form-group">
+                <label>Role</label>
+                <select name="Role" required>
+                    <option value="">Select your role</option>
+                    <option value="Customer">Customer</option>
+                    <option value="Staff">Staff</option>
+                    <option value="Manager">Manager</option>
+                </select>
+            </div>
+            <button type="submit" class="login-btn">Sign In</button>
+        </form>
+
+        <div class="login-note">
+            Don't have an account? <a href="/Signup" style="color:#0066cc;">Sign Up</a>
+        </div>
+    </div>
+</div>
