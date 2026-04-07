@@ -1,0 +1,273 @@
+/* HERO */
+.hero {
+    height: 500px;
+    background: url('/Images/hero-hotel.jpg') center/cover no-repeat;
+    position: relative;
+    margin-top: 60px;
+}
+
+.overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding-left: 80px;
+    color: white;
+}
+
+.overlay img {
+    display: none;
+}
+
+.overlay h1 {
+    font-size: 48px;
+    font-weight: bold;
+}
+
+.overlay span {
+    color: #f0a94b;
+}
+
+.overlay p {
+    margin: 15px 0;
+    font-size: 16px;
+}
+
+.buttons {
+    display: flex;
+    gap: 15px;
+}
+
+.btn-primary, .btn-secondary {
+    padding: 12px 28px;
+    border: none;
+    border-radius: 6px;
+    font-size: 15px;
+    cursor: pointer;
+}
+
+.btn-primary {
+    background: #b07a2a;
+    color: white;
+}
+
+.btn-secondary {
+    background: transparent;
+    color: white;
+    border: 2px solid white;
+}
+
+/* SECTIONS */
+.section {
+    padding: 60px 80px;
+}
+
+.section h2 {
+    font-size: 28px;
+    margin-bottom: 30px;
+}
+
+.icon {
+    font-size: 22px;
+    color: #b07a2a;
+    margin-bottom: 10px;
+}
+
+/* WHY CHOOSE US GRID */
+.grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 25px;
+}
+
+/* CARDS (Why Choose Us + Events) */
+.card {
+    background: white;
+    border-radius: 12px;
+    padding: 25px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.07);
+    text-align: center;
+}
+
+.card h4 {
+    margin: 10px 0 6px;
+    font-size: 16px;
+}
+
+.card p {
+    font-size: 14px;
+    color: #666;
+}
+
+/* EVENTS */
+.events-section {
+    padding: 60px 80px;
+    background: #fdf8f2;
+}
+
+.events-intro {
+    text-align: center;
+    max-width: 750px;
+    margin: 0 auto 50px;
+}
+
+.events-intro h2 {
+    font-size: 32px;
+    color: #2c2c2c;
+    margin-bottom: 15px;
+}
+
+.events-intro p {
+    font-size: 15px;
+    color: #666;
+    line-height: 1.8;
+}
+
+.events-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 25px;
+}
+
+.event-card {
+    background: white;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.07);
+    display: flex;
+    flex-direction: column;
+}
+
+.event-card img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+}
+
+.event-card-body {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.event-card-body h4 {
+    font-size: 16px;
+    margin: 8px 0 6px;
+    color: #2c2c2c;
+}
+
+.event-date {
+    font-size: 13px;
+    color: #b07a2a;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+.event-date i {
+    margin-right: 5px;
+}
+
+.event-card-body p {
+    font-size: 13px;
+    color: #666;
+    line-height: 1.6;
+    flex: 1;
+}
+
+.btn-event {
+    margin-top: 15px;
+    background: #b07a2a;
+    color: white;
+    border: none;
+    padding: 9px 16px;
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+    align-self: flex-start;
+}
+
+/* ROOMS */
+.room-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 25px;
+}
+
+.room-card {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.05);
+}
+
+.room-card img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+}
+
+.room-card .content {
+    padding: 15px;
+}
+
+.room-card h4 {
+    margin-bottom: 5px;
+}
+
+.room-card p {
+    color: #b07a2a;
+    font-weight: bold;
+}
+
+.room-card button {
+    width: 100%;
+    margin-top: 10px;
+    background: #b07a2a;
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+/* FOOTER */
+.footer {
+    background: #2b1c12;
+    color: #eee;
+    padding: 50px 80px;
+    display: flex;
+    justify-content: space-between;
+    gap: 40px;
+    width: 100%;
+    box-sizing: border-box;
+    margin: 0;
+}
+
+.footer-col {
+    flex: 1;
+}
+
+.footer h3, .footer h4 {
+    color: #f0a94b;
+    margin-bottom: 10px;
+}
+
+.footer p {
+    font-size: 14px;
+    margin: 5px 0;
+    color: #ccc;
+}
+
+.footer-bottom {
+    background: #1e140d;
+    text-align: center;
+    padding: 15px;
+    color: #aaa;
+    font-size: 13px;
+    width: 100%;
+    box-sizing: border-box;
+    margin: 0;
+}

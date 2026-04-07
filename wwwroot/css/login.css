@@ -1,0 +1,124 @@
+.auth-container {
+    min-height: calc(100vh - 70px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #f7f4ef;
+    padding: 40px 20px;
+}
+
+.auth-card {
+    width: 420px;
+    background: #ffffff;
+    padding: 45px 40px;
+    border-radius: 14px;
+    text-align: center;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+}
+
+.auth-logo {
+    font-size: 22px;
+    color: #b07a2a;
+    font-weight: bold;
+    margin-bottom: 12px;
+}
+
+.auth-card h2 {
+    font-size: 22px;
+    color: #2c2c2c;
+    margin-bottom: 6px;
+}
+
+.subtitle {
+    font-size: 14px;
+    color: #888;
+    margin-bottom: 28px;
+}
+
+.auth-card label {
+    display: block;
+    text-align: left;
+    margin-bottom: 5px;
+    font-size: 14px;
+    color: #444;
+    font-weight: 500;
+}
+
+.auth-card input,
+.auth-card select {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    margin-bottom: 18px;
+    font-size: 14px;
+    box-sizing: border-box;
+    outline: none;
+    transition: border 0.2s;
+    background: white;
+}
+
+.auth-card input:focus,
+.auth-card select:focus {
+    border-color: #b07a2a;
+}
+
+.auth-card button {
+    width: 100%;
+    margin-top: 5px;
+    background-color: #b07a2a;
+    color: white;
+    padding: 13px;
+    border-radius: 8px;
+    border: none;
+    font-weight: 600;
+    font-size: 15px;
+    cursor: pointer;
+}
+
+.auth-card button:hover {
+    background-color: #9a6a22;
+}
+
+.auth-switch {
+    margin-top: 20px;
+    font-size: 13px;
+    color: #888;
+}
+
+.auth-switch a {
+    color: #b07a2a;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.auth-switch a:hover {
+    text-decoration: underline;
+}
+
+.auth-error {
+    background: #fdecea;
+    color: #c0392b;
+    border: 1px solid #f5c6cb;
+    border-radius: 6px;
+    padding: 10px 14px;
+    font-size: 13px;
+    margin-bottom: 16px;
+    text-align: left;
+}
+
+/* Navbar signup button */
+.signup-link {
+    background: #b07a2a;
+    color: white !important;
+    padding: 8px 18px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 14px;
+    transition: background 0.2s;
+}
+
+.signup-link:hover {
+    background: #9a6a22;
+}

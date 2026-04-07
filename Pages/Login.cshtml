@@ -1,0 +1,27 @@
+@page
+@model HotelBookingSystem.Pages.LoginModel
+@{
+    ViewData["Title"] = "Login";
+}
+
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="auth-logo">🏨 Grand Haven</div>
+        <h2>Welcome Back</h2>
+        <p class="subtitle">Sign in to manage your bookings</p>
+
+        @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+        {
+            <p class="auth-error">@Model.ErrorMessage</p>
+        }
+
+        <form method="post">
+            <label for="Email">Email Address</label>
+            <input type="email" id="Email" name="Email" placeholder="" value="@Model.Email" required />
+
+            <button type="submit">Login</button>
+        </form>
+
+        <p class="auth-switch">Don't have an account? <a href="/Signup">Sign Up</a></p>
+    </div>
+</div>
