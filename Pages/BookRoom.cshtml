@@ -1,0 +1,172 @@
+@page
+@model HotelBookingSystem.Pages.BookRoomModel
+@{
+    ViewData["Title"] = "Book Room";
+    var roomId     = Request.Query["roomId"].ToString();
+    var roomName   = Request.Query["roomName"].ToString();
+    var roomType   = Request.Query["roomType"].ToString();
+    var roomImg    = Request.Query["roomImg"].ToString();
+    var nightPrice = Request.Query["nightPrice"].ToString();
+    var hourPrice  = Request.Query["hourPrice"].ToString();
+    var maxGuests  = Request.Query["maxGuests"].ToString();
+    var desc       = Request.Query["desc"].ToString();
+    var amenities  = Request.Query["amenities"].ToString(); // comma-separated
+}
+<link rel="stylesheet" href="~/css/BookRoom.css" />
+
+<div class="bookroom-page">
+
+    <a href="/Rooms" class="back-link"><i class="fa-solid fa-arrow-left"></i> Back</a>
+
+    <div class="bookroom-layout">
+
+        <!-- LEFT: Room Info -->
+        <div class="bookroom-left">
+            <img src="/@roomImg" alt="@roomName" class="bookroom-img" />
+            <h2 class="bookroom-room-title">@roomName &mdash; @roomType</h2>
+            <p class="bookroom-room-desc">@desc</p>
+            <div class="bookroom-tags">
+                @foreach (var a in amenities.Split(','))
+                {
+                    <span class="amenity-tag">@a.Trim()</span>
+                }
+            </div>
+            <div class="bookroom-pricing">
+                <span class="price-night"><span class="dollar">$</span>@nightPrice<span class="per">/night</span></span>
+                <span class="price-hour">or $@hourPrice/hour</span>
+            </div>
+        </div>
+
+        <!-- RIGHT: Booking Form -->
+        <div class="bookroom-right">
+            <h2>Book This Room</h2>
+
+            <div class="form-group">
+                <label>Booking Type</label>
+                <div class="booking-type-toggle">
+                    <button type="button" class="type-btn active" id="btnDaily" onclick="setType('daily')">
+                        <i class="fa-regular fa-calendar"></i> Daily
+                    </button>
+                    <button type="button" class="type-btn" id="btnHourly" onclick="setType('hourly')">
+                        <i class="fa-regular fa-clock"></i> Hourly
+                    </button>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Full Name</label>
+                <input type="text" placeholder="John Smith" id="fullName" />
+            </div>
+
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" placeholder="john@email.com" id="email" />
+            </div>
+
+            <!-- DAILY FIELDS -->
+            <div id="dailyFields">
+                <div class="form-row">
+                    <div class="form-group half">
+                        <label>Check-in Date</label>
+                        <div class="input-icon">
+                            <i class="fa-regular fa-calendar"></i>
+                            <input type="date" id="checkinDate" placeholder="Select" />
+                        </div>
+                    </div>
+                    <div class="form-group half">
+                        <label>Check-out Date</label>
+                        <div class="input-icon">
+                            <i class="fa-regular fa-calendar"></i>
+                            <input type="date" id="checkoutDate" placeholder="Select" />
+                        </div>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group half">
+                        <label>Check-in Time</label>
+                        <div class="select-wrap">
+                            <select id="checkinTime">
+                                @for (int h = 0; h < 24; h++)
+                                {
+                                    var val = h.ToString("D2") + ":00";
+                                    if (h == 14) { <option value="@val" selected>@val</option> }
+                                    else { <option value="@val">@val</option> }
+                                }
+                            </select>
+                            <i class="fa-solid fa-chevron-down"></i>
+                        </div>
+                    </div>
+                    <div class="form-group half">
+                        <label>Check-out Time</label>
+                        <div class="select-wrap">
+                            <select id="checkoutTime">
+                                @for (int h = 0; h < 24; h++)
+                                {
+                                    var val = h.ToString("D2") + ":00";
+                                    if (h == 12) { <option value="@val" selected>@val</option> }
+                                    else { <option value="@val">@val</option> }
+                                }
+                            </select>
+                            <i class="fa-solid fa-chevron-down"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- HOURLY FIELDS -->
+            <div id="hourlyFields" style="display:none">
+                <div class="form-group">
+                    <label>Date</label>
+                    <div class="input-icon">
+                        <i class="fa-regular fa-calendar"></i>
+                        <input type="date" id="hourlyDate" placeholder="Select date" />
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group half">
+                        <label>Start Time</label>
+                        <div class="select-wrap">
+                            <select id="startTime">
+                                @for (int h = 0; h < 24; h++)
+                                {
+                                    var val = h.ToString("D2") + ":00";
+                                    if (h == 14) { <option value="@val" selected>@val</option> }
+                                    else { <option value="@val">@val</option> }
+                                }
+                            </select>
+                            <i class="fa-solid fa-chevron-down"></i>
+                        </div>
+                    </div>
+                    <div class="form-group half">
+                        <label>Duration (hours)</label>
+                        <input type="number" id="duration" value="2" min="1" max="12" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Guests</label>
+                <div class="guests-row">
+                    <i class="fa-regular fa-user"></i>
+                    <input type="number" id="guests" value="1" min="1" max="@maxGuests" />
+                    <span class="max-guests">Max @maxGuests</span>
+                </div>
+            </div>
+
+            <button class="btn-confirm">Confirm Booking</button>
+        </div>
+
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    function setType(type) {
+        const isDaily = type === 'daily';
+        document.getElementById('btnDaily').classList.toggle('active', isDaily);
+        document.getElementById('btnHourly').classList.toggle('active', !isDaily);
+        document.getElementById('dailyFields').style.display = isDaily ? 'block' : 'none';
+        document.getElementById('hourlyFields').style.display = isDaily ? 'none' : 'block';
+    }
+</script>
+}

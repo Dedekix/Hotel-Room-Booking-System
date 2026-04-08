@@ -206,6 +206,10 @@
     cursor: pointer;
     transition: background 0.2s;
     margin-top: auto;
+    text-align: center;
+    text-decoration: none;
+    display: block;
+    box-sizing: border-box;
 }
 
 .btn-book:hover:not(:disabled) {
