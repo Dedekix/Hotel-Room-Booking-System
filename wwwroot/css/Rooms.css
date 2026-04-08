@@ -1,0 +1,279 @@
+.rooms-page {
+    padding: 50px 80px 40px;
+    background: #f7f4ef;
+    min-height: 80vh;
+}
+
+.rooms-header {
+    margin-bottom: 30px;
+}
+
+.rooms-header h1 {
+    font-size: 36px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 6px;
+}
+
+.rooms-header p {
+    font-size: 15px;
+    color: #777;
+}
+
+/* Filter Tabs */
+.filter-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 35px;
+}
+
+.filter-btn {
+    padding: 9px 22px;
+    border-radius: 25px;
+    border: 1.5px solid #ccc;
+    background: white;
+    font-size: 14px;
+    font-weight: 500;
+    color: #444;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.filter-btn.active,
+.filter-btn:hover {
+    background: #b07a2a;
+    color: white;
+    border-color: #b07a2a;
+}
+
+/* Rooms Grid */
+.rooms-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 28px;
+}
+
+/* Room Card */
+.room-card {
+    background: white;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.07);
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.room-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 28px rgba(0,0,0,0.11);
+}
+
+/* Image Wrapper */
+.room-img-wrap {
+    position: relative;
+    width: 100%;
+    height: 230px;
+    overflow: hidden;
+}
+
+.room-img-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+/* Badge */
+.room-badge {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    background: rgba(176, 122, 42, 0.88);
+    color: white;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 20px;
+    z-index: 2;
+}
+
+/* Overlay (Occupied / Maintenance) */
+.room-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.52);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    z-index: 1;
+}
+
+.overlay-status {
+    color: white;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+.overlay-available {
+    color: #e8d5b0;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* Card Body */
+.room-body {
+    padding: 20px 22px 22px;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.room-title-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.room-title-row h3 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin: 0;
+}
+
+.room-price {
+    font-size: 18px;
+    font-weight: 700;
+    color: #b07a2a;
+}
+
+.room-price .dollar {
+    font-size: 15px;
+}
+
+.room-price .per {
+    font-size: 13px;
+    font-weight: 400;
+    color: #888;
+}
+
+.room-desc {
+    font-size: 13.5px;
+    color: #666;
+    line-height: 1.6;
+    margin-bottom: 14px;
+}
+
+/* Amenities */
+.room-amenities {
+    display: flex;
+    gap: 14px;
+    font-size: 13px;
+    color: #555;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+}
+
+.room-amenities span {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.room-amenities i {
+    color: #888;
+    font-size: 13px;
+}
+
+/* Book Button */
+.btn-book {
+    width: 100%;
+    padding: 13px;
+    background: #b07a2a;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+    margin-top: auto;
+}
+
+.btn-book:hover:not(:disabled) {
+    background: #9a6a22;
+}
+
+.btn-book.unavailable {
+    background: #c9a96e;
+    cursor: not-allowed;
+    opacity: 0.75;
+}
+
+/* Footer */
+.rooms-footer {
+    background: #2b1c12;
+    color: #eee;
+    margin-top: 0;
+}
+
+.footer-inner {
+    display: flex;
+    justify-content: space-between;
+    gap: 40px;
+    padding: 50px 80px;
+}
+
+.footer-inner .footer-col {
+    flex: 1;
+}
+
+.footer-inner h3 {
+    color: #f0a94b;
+    font-size: 20px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.footer-inner h4 {
+    color: #f0a94b;
+    margin-bottom: 14px;
+    font-size: 16px;
+}
+
+.footer-inner p {
+    font-size: 14px;
+    color: #ccc;
+    margin: 8px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.footer-inner a {
+    color: #ccc;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+.footer-inner a:hover {
+    color: #f0a94b;
+}
+
+.rooms-footer .footer-bottom {
+    border-top: 1px solid #3d2a1a;
+    text-align: center;
+    padding: 16px;
+    color: #888;
+    font-size: 13px;
+}

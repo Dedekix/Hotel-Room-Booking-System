@@ -122,3 +122,25 @@
 .signup-link:hover {
     background: #9a6a22;
 }
+
+/* Staff Portal button */
+.staff-portal-link {
+    background: #b07a2a;
+    color: white !important;
+    padding: 9px 20px;
+    border-radius: 7px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 14px;
+    transition: background 0.2s;
+}
+
+.staff-portal-link:hover {
+    background: #9a6a22;
+}
+
+/* Active nav link */
+.nav-active {
+    color: #b07a2a !important;
+    font-weight: 600;
+}
