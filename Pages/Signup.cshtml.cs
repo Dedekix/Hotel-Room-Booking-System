@@ -1,4 +1,3 @@
-using System.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Data.SqlClient;
@@ -15,7 +14,12 @@ namespace HotelBookingSystem.Pages
 
     public class SignupModel : PageModel
     {
-        string connectionString = "Data Source=Delphine\\SQLEXPRESS;Initial Catalog=HotelBookingDB;Integrated Security=True;Trust Server Certificate=True";
+        private readonly string _connectionString;
+
+        public SignupModel(string connectionString)
+        {
+            _connectionString = connectionString;
+        }
 
         [BindProperty]
         public string FullName { get; set; } = string.Empty;
@@ -40,11 +44,11 @@ namespace HotelBookingSystem.Pages
 
             try
             {
-                using (SqlConnection conn = new SqlConnection(connectionString))
+                using (SqlConnection conn = new SqlConnection(_connectionString))
                 {
                     conn.Open();
 
-                    string checkQuery = "SELECT COUNT(*) FROM Users WHERE Email = @Email";
+                    string checkQuery = "SELECT COUNT(*) FROM Users WHERE email = @Email";
                     using (SqlCommand checkCmd = new SqlCommand(checkQuery, conn))
                     {
                         checkCmd.Parameters.AddWithValue("@Email", Email);
@@ -56,7 +60,7 @@ namespace HotelBookingSystem.Pages
                         }
                     }
 
-                    string insertQuery = "INSERT INTO Users (FullName, Email, Role) VALUES (@FullName, @Email, @Role)";
+                    string insertQuery = "INSERT INTO Users (fullName, email, role) VALUES (@FullName, @Email, @Role)";
                     using (SqlCommand cmd = new SqlCommand(insertQuery, conn))
                     {
                         cmd.Parameters.AddWithValue("@FullName", FullName);
