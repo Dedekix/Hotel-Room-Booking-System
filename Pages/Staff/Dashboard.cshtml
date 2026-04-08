@@ -1,0 +1,54 @@
+@page
+@model HotelBookingSystem.Pages.Staff.DashboardModel
+@{
+    Layout = "_StaffLayout";
+    ViewData["Title"] = "Dashboard";
+    ViewData["ActivePage"] = "Dashboard";
+}
+
+<h1 class="staff-page-title">Dashboard</h1>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-card-top">
+            <span class="stat-label">Total Bookings</span>
+            <div class="stat-icon blue"><i class="fa-regular fa-calendar"></i></div>
+        </div>
+        <div class="stat-value">5</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-card-top">
+            <span class="stat-label">Today's Guests</span>
+            <div class="stat-icon green"><i class="fa-solid fa-bed"></i></div>
+        </div>
+        <div class="stat-value">1</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-card-top">
+            <span class="stat-label">Revenue</span>
+            <div class="stat-icon orange"><i class="fa-solid fa-chart-bar"></i></div>
+        </div>
+        <div class="stat-value">$3,720</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-card-top">
+            <span class="stat-label">Occupancy</span>
+            <div class="stat-icon yellow"><i class="fa-solid fa-table-cells"></i></div>
+        </div>
+        <div class="stat-value">17%</div>
+    </div>
+</div>
+
+<h2 class="section-title">Today's Activity</h2>
+<div class="activity-list">
+    <div class="activity-item">
+        <div class="activity-left">
+            <i class="fa-solid fa-arrow-right-to-bracket activity-icon"></i>
+            <div>
+                <div class="activity-name">John Smith</div>
+                <div class="activity-sub">Room 202 · checked-in</div>
+            </div>
+        </div>
+        <button class="action-link">Check Out</button>
+    </div>
+</div>

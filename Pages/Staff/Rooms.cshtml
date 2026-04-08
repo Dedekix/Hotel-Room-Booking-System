@@ -1,0 +1,94 @@
+@page
+@model HotelBookingSystem.Pages.Staff.RoomsModel
+@{
+    Layout = "_StaffLayout";
+    ViewData["Title"] = "Rooms";
+    ViewData["ActivePage"] = "Rooms";
+}
+
+<div class="rooms-mgmt-header">
+    <h1 class="staff-page-title" style="margin-bottom:0">Room Management</h1>
+    <button class="btn-add-room"><i class="fa-solid fa-plus"></i> Add Room</button>
+</div>
+
+<div class="rooms-mgmt-grid">
+
+    <div class="room-mgmt-card">
+        <div class="room-mgmt-top">
+            <span class="room-mgmt-name">Room 101</span>
+            <span class="badge-available">Available</span>
+        </div>
+        <div class="room-mgmt-sub">Standard · Max 2 Guests</div>
+        <div class="room-mgmt-price">$120/night</div>
+        <div class="room-mgmt-actions">
+            <button class="btn-edit">Edit</button>
+            <button class="btn-key"><i class="fa-solid fa-key"></i></button>
+        </div>
+    </div>
+
+    <div class="room-mgmt-card">
+        <div class="room-mgmt-top">
+            <span class="room-mgmt-name">Room 102</span>
+            <span class="badge-available">Available</span>
+        </div>
+        <div class="room-mgmt-sub">Standard · Max 2 Guests</div>
+        <div class="room-mgmt-price">$120/night</div>
+        <div class="room-mgmt-actions">
+            <button class="btn-edit">Edit</button>
+            <button class="btn-key"><i class="fa-solid fa-key"></i></button>
+        </div>
+    </div>
+
+    <div class="room-mgmt-card">
+        <div class="room-mgmt-top">
+            <span class="room-mgmt-name">Room 201</span>
+            <span class="badge-available">Available</span>
+        </div>
+        <div class="room-mgmt-sub">Deluxe · Max 3 Guests</div>
+        <div class="room-mgmt-price">$220/night</div>
+        <div class="room-mgmt-actions">
+            <button class="btn-edit">Edit</button>
+            <button class="btn-key"><i class="fa-solid fa-key"></i></button>
+        </div>
+    </div>
+
+    <div class="room-mgmt-card">
+        <div class="room-mgmt-top">
+            <span class="room-mgmt-name">Room 202</span>
+            <span class="badge-occupied">Occupied</span>
+        </div>
+        <div class="room-mgmt-sub">Deluxe · Max 3 Guests</div>
+        <div class="room-mgmt-price">$220/night</div>
+        <div class="room-mgmt-actions">
+            <button class="btn-edit">Edit</button>
+            <button class="btn-key"><i class="fa-solid fa-key"></i></button>
+        </div>
+    </div>
+
+    <div class="room-mgmt-card">
+        <div class="room-mgmt-top">
+            <span class="room-mgmt-name">Room 301</span>
+            <span class="badge-available">Available</span>
+        </div>
+        <div class="room-mgmt-sub">Suite · Max 4 Guests</div>
+        <div class="room-mgmt-price">$450/night</div>
+        <div class="room-mgmt-actions">
+            <button class="btn-edit">Edit</button>
+            <button class="btn-key"><i class="fa-solid fa-key"></i></button>
+        </div>
+    </div>
+
+    <div class="room-mgmt-card">
+        <div class="room-mgmt-top">
+            <span class="room-mgmt-name">Room 302</span>
+            <span class="badge-maintenance">Maintenance</span>
+        </div>
+        <div class="room-mgmt-sub">Suite · Max 4 Guests</div>
+        <div class="room-mgmt-price">$450/night</div>
+        <div class="room-mgmt-actions">
+            <button class="btn-edit">Edit</button>
+            <button class="btn-key"><i class="fa-solid fa-key"></i></button>
+        </div>
+    </div>
+
+</div>

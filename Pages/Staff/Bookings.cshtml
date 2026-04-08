@@ -1,0 +1,87 @@
+@page
+@model HotelBookingSystem.Pages.Staff.BookingsModel
+@{
+    Layout = "_StaffLayout";
+    ViewData["Title"] = "Bookings";
+    ViewData["ActivePage"] = "Bookings";
+}
+
+<div class="bookings-header">
+    <h1 class="staff-page-title" style="margin-bottom:0">All Bookings</h1>
+    <div class="search-box">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input type="text" placeholder="Search guest or room..." id="searchInput" oninput="filterBookings()" />
+    </div>
+</div>
+
+<table class="bookings-table" id="bookingsTable">
+    <thead>
+        <tr>
+            <th>Booking</th>
+            <th>Guest</th>
+            <th>Room</th>
+            <th>Dates</th>
+            <th>Total</th>
+            <th>Status</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td class="booking-id">B001</td>
+            <td class="guest-name">John Smith</td>
+            <td>202</td>
+            <td>2026-03-19 &rarr; 2026-03-22</td>
+            <td class="total-amount">$660</td>
+            <td><span class="badge-status badge-checkedin">Checked-In</span></td>
+            <td><button class="action-link">Check Out</button></td>
+        </tr>
+        <tr>
+            <td class="booking-id">B002</td>
+            <td class="guest-name">Sarah Johnson</td>
+            <td>201</td>
+            <td>2026-03-20 &rarr; 2026-03-23</td>
+            <td class="total-amount">$660</td>
+            <td><span class="badge-status badge-confirmed">Confirmed</span></td>
+            <td><button class="action-link">Check In</button></td>
+        </tr>
+        <tr>
+            <td class="booking-id">B003</td>
+            <td class="guest-name">Mike Davis</td>
+            <td>301</td>
+            <td>2026-03-21 &rarr; 2026-03-25</td>
+            <td class="total-amount">$1800</td>
+            <td><span class="badge-status badge-confirmed">Confirmed</span></td>
+            <td><button class="action-link">Check In</button></td>
+        </tr>
+        <tr>
+            <td class="booking-id">B004</td>
+            <td class="guest-name">Emily Chen</td>
+            <td>101</td>
+            <td>2026-03-10 &rarr; 2026-03-13</td>
+            <td class="total-amount">$360</td>
+            <td><span class="badge-status badge-completed">Completed</span></td>
+            <td></td>
+        </tr>
+        <tr>
+            <td class="booking-id">B005</td>
+            <td class="guest-name">James Wilson</td>
+            <td>102</td>
+            <td>2026-03-25 &rarr; 2026-03-27</td>
+            <td class="total-amount">$240</td>
+            <td><span class="badge-status badge-confirmed">Confirmed</span></td>
+            <td><button class="action-link">Check In</button></td>
+        </tr>
+    </tbody>
+</table>
+
+@section Scripts {
+<script>
+    function filterBookings() {
+        const q = document.getElementById('searchInput').value.toLowerCase();
+        document.querySelectorAll('#bookingsTable tbody tr').forEach(row => {
+            row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
+        });
+    }
+</script>
+}
