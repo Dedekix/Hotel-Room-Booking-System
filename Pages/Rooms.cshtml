@@ -2,6 +2,7 @@
 @model HotelBookingSystem.Pages.RoomsModel
 @{
     ViewData["Title"] = "Rooms";
+    var types = Model.Rooms.Select(r => r.Type).Distinct().OrderBy(t => t).ToList();
 }
 <link rel="stylesheet" href="~/css/Rooms.css" />
 
@@ -13,153 +14,53 @@
 
     <div class="filter-tabs">
         <button class="filter-btn active" data-filter="all">All Rooms</button>
-        <button class="filter-btn" data-filter="Standard">Standard</button>
-        <button class="filter-btn" data-filter="Deluxe">Deluxe</button>
-        <button class="filter-btn" data-filter="Suite">Suite</button>
+        @foreach (var t in types)
+        {
+            <button class="filter-btn" data-filter="@t">@t</button>
+        }
     </div>
 
     <div class="rooms-grid" id="roomsGrid">
+        @foreach (var room in Model.Rooms)
+        {
+            bool unavailable = room.DisplayStatus != "Available";
 
-        <!-- Room 101 - Standard - Available -->
-        <div class="room-card" data-type="Standard">
-            <div class="room-img-wrap">
-                <span class="room-badge">Standard</span>
-                <img src="/Images/room101.jpg" alt="Room 101" />
-            </div>
-            <div class="room-body">
-                <div class="room-title-row">
-                    <h3>Room 101</h3>
-                    <span class="room-price"><span class="dollar">$</span>120<span class="per">/night</span></span>
+            <div class="room-card" data-type="@room.Type" style="display:flex">
+                <div class="room-img-wrap">
+                    <span class="room-badge">@room.Type</span>
+                    <img src="/@room.ImagePath" alt="Room @room.RoomNumber" />
+                    @if (unavailable)
+                    {
+                        <div class="room-overlay">
+                            <span class="overlay-status">@room.DisplayStatus.ToUpper()</span>
+                        </div>
+                    }
                 </div>
-                <p class="room-desc">Comfortable room with modern amenities, perfect for business or leisure travelers.</p>
-                <div class="room-amenities">
-                    <span><i class="fa-solid fa-user-group"></i> 2</span>
-                    <span><i class="fa-solid fa-wifi"></i> Wi-Fi</span>
-                    <span><i class="fa-solid fa-tv"></i> TV</span>
-                    <span><i class="fa-solid fa-wind"></i> AC</span>
-                </div>
-                <a href="/BookRoom?roomId=101&roomName=Room 101&roomType=Standard&roomImg=Images/room101.jpg&nightPrice=120&hourPrice=20&maxGuests=2&desc=Comfortable room with modern amenities, perfect for business or leisure travelers.&amenities=Wi-Fi,TV,Air Conditioning,Mini Bar" class="btn-book">Book Now</a>
-            </div>
-        </div>
-
-        <!-- Room 102 - Standard - Available -->
-        <div class="room-card" data-type="Standard">
-            <div class="room-img-wrap">
-                <span class="room-badge">Standard</span>
-                <img src="/Images/room101.jpg" alt="Room 102" />
-            </div>
-            <div class="room-body">
-                <div class="room-title-row">
-                    <h3>Room 102</h3>
-                    <span class="room-price"><span class="dollar">$</span>120<span class="per">/night</span></span>
-                </div>
-                <p class="room-desc">Comfortable room with modern amenities, perfect for business or leisure travelers.</p>
-                <div class="room-amenities">
-                    <span><i class="fa-solid fa-user-group"></i> 2</span>
-                    <span><i class="fa-solid fa-wifi"></i> Wi-Fi</span>
-                    <span><i class="fa-solid fa-tv"></i> TV</span>
-                    <span><i class="fa-solid fa-wind"></i> AC</span>
-                </div>
-                <a href="/BookRoom?roomId=102&roomName=Room 102&roomType=Standard&roomImg=Images/room101.jpg&nightPrice=120&hourPrice=20&maxGuests=2&desc=Comfortable room with modern amenities, perfect for business or leisure travelers.&amenities=Wi-Fi,TV,Air Conditioning,Mini Bar" class="btn-book">Book Now</a>
-            </div>
-        </div>
-
-        <!-- Room 201 - Deluxe - Available -->
-        <div class="room-card" data-type="Deluxe">
-            <div class="room-img-wrap">
-                <span class="room-badge">Deluxe</span>
-                <img src="/Images/room201.jpg" alt="Room 201" />
-            </div>
-            <div class="room-body">
-                <div class="room-title-row">
-                    <h3>Room 201</h3>
-                    <span class="room-price"><span class="dollar">$</span>220<span class="per">/night</span></span>
-                </div>
-                <p class="room-desc">Spacious deluxe room with stunning city views and premium furnishings.</p>
-                <div class="room-amenities">
-                    <span><i class="fa-solid fa-user-group"></i> 3</span>
-                    <span><i class="fa-solid fa-wifi"></i> Wi-Fi</span>
-                    <span><i class="fa-solid fa-tv"></i> TV</span>
-                    <span><i class="fa-solid fa-wind"></i> AC</span>
-                </div>
-                <a href="/BookRoom?roomId=201&roomName=Room 201&roomType=Deluxe&roomImg=Images/room201.jpg&nightPrice=220&hourPrice=35&maxGuests=3&desc=Spacious deluxe room with stunning city views and premium furnishings.&amenities=Wi-Fi,TV,Air Conditioning,Mini Bar" class="btn-book">Book Now</a>
-            </div>
-        </div>
-
-        <!-- Room 202 - Deluxe - Occupied -->
-        <div class="room-card" data-type="Deluxe">
-            <div class="room-img-wrap">
-                <span class="room-badge">Deluxe</span>
-                <img src="/Images/room201.jpg" alt="Room 202" />
-                <div class="room-overlay">
-                    <span class="overlay-status">OCCUPIED</span>
-                    <span class="overlay-available"><i class="fa-regular fa-clock"></i> Available Apr 5, 2026</span>
+                <div class="room-body">
+                    <div class="room-title-row">
+                        <h3>Room @room.RoomNumber</h3>
+                        <span class="room-price">
+                            <span class="dollar">$</span>@room.PricePerNight.ToString("0.##")<span class="per">/night</span>
+                        </span>
+                    </div>
+                    <p class="room-desc">@room.Description</p>
+                    <div class="room-amenities">
+                        <span><i class="fa-solid fa-user-group"></i> @room.Capacity</span>
+                        <span><i class="fa-solid fa-wifi"></i> Wi-Fi</span>
+                        <span><i class="fa-solid fa-tv"></i> TV</span>
+                        <span><i class="fa-solid fa-wind"></i> AC</span>
+                    </div>
+                    @if (unavailable)
+                    {
+                        <button class="btn-book unavailable" disabled>Unavailable</button>
+                    }
+                    else
+                    {
+                        <a href="/BookRoom?roomId=@room.RoomId" class="btn-book">Book Now</a>
+                    }
                 </div>
             </div>
-            <div class="room-body">
-                <div class="room-title-row">
-                    <h3>Room 202</h3>
-                    <span class="room-price"><span class="dollar">$</span>220<span class="per">/night</span></span>
-                </div>
-                <p class="room-desc">Spacious deluxe room with stunning city views and premium furnishings.</p>
-                <div class="room-amenities">
-                    <span><i class="fa-solid fa-user-group"></i> 3</span>
-                    <span><i class="fa-solid fa-wifi"></i> Wi-Fi</span>
-                    <span><i class="fa-solid fa-tv"></i> TV</span>
-                    <span><i class="fa-solid fa-wind"></i> AC</span>
-                </div>
-                <button class="btn-book unavailable" disabled>Unavailable</button>
-            </div>
-        </div>
-
-        <!-- Room 301 - Suite - Available -->
-        <div class="room-card" data-type="Suite">
-            <div class="room-img-wrap">
-                <span class="room-badge">Suite</span>
-                <img src="/Images/room301.jpg" alt="Room 301" />
-            </div>
-            <div class="room-body">
-                <div class="room-title-row">
-                    <h3>Room 301</h3>
-                    <span class="room-price"><span class="dollar">$</span>450<span class="per">/night</span></span>
-                </div>
-                <p class="room-desc">Luxurious suite with separate living area, jacuzzi, and panoramic views.</p>
-                <div class="room-amenities">
-                    <span><i class="fa-solid fa-user-group"></i> 4</span>
-                    <span><i class="fa-solid fa-wifi"></i> Wi-Fi</span>
-                    <span><i class="fa-solid fa-tv"></i> TV</span>
-                    <span><i class="fa-solid fa-wind"></i> AC</span>
-                </div>
-                <a href="/BookRoom?roomId=301&roomName=Room 301&roomType=Suite&roomImg=Images/room301.jpg&nightPrice=450&hourPrice=60&maxGuests=4&desc=Luxurious suite with separate living area, jacuzzi, and panoramic views.&amenities=Wi-Fi,TV,Air Conditioning,Mini Bar" class="btn-book">Book Now</a>
-            </div>
-        </div>
-
-        <!-- Room 302 - Suite - Maintenance -->
-        <div class="room-card" data-type="Suite">
-            <div class="room-img-wrap">
-                <span class="room-badge">Suite</span>
-                <img src="/Images/room301.jpg" alt="Room 302" />
-                <div class="room-overlay">
-                    <span class="overlay-status">MAINTENANCE</span>
-                    <span class="overlay-available"><i class="fa-regular fa-clock"></i> Available Apr 10, 2026</span>
-                </div>
-            </div>
-            <div class="room-body">
-                <div class="room-title-row">
-                    <h3>Room 302</h3>
-                    <span class="room-price"><span class="dollar">$</span>450<span class="per">/night</span></span>
-                </div>
-                <p class="room-desc">Luxurious suite with separate living area, jacuzzi, and panoramic views.</p>
-                <div class="room-amenities">
-                    <span><i class="fa-solid fa-user-group"></i> 4</span>
-                    <span><i class="fa-solid fa-wifi"></i> Wi-Fi</span>
-                    <span><i class="fa-solid fa-tv"></i> TV</span>
-                    <span><i class="fa-solid fa-wind"></i> AC</span>
-                </div>
-                <button class="btn-book unavailable" disabled>Unavailable</button>
-            </div>
-        </div>
-
+        }
     </div>
 </div>
 
@@ -190,7 +91,7 @@
 
 @section Scripts {
 <script>
-    const btns = document.querySelectorAll('.filter-btn');
+    const btns  = document.querySelectorAll('.filter-btn');
     const cards = document.querySelectorAll('.room-card');
 
     btns.forEach(btn => {

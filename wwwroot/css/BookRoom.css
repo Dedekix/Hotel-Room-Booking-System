@@ -290,3 +290,13 @@
 .btn-confirm:hover {
     background: #9a6a22;
 }
+
+.booking-error {
+    background: #fdecea;
+    color: #c0392b;
+    border: 1px solid #f5c6cb;
+    border-radius: 8px;
+    padding: 11px 14px;
+    font-size: 13.5px;
+    margin-bottom: 16px;
+}

@@ -8,87 +8,170 @@
 
 <div class="rooms-mgmt-header">
     <h1 class="staff-page-title" style="margin-bottom:0">Room Management</h1>
-    <button class="btn-add-room"><i class="fa-solid fa-plus"></i> Add Room</button>
+    <button class="btn-add-room" onclick="openAddModal()">
+        <i class="fa-solid fa-plus"></i> Add Room
+    </button>
 </div>
+
+@if (!string.IsNullOrEmpty(Model.ErrorMessage))
+{
+    <div class="staff-alert staff-alert-error">@Model.ErrorMessage</div>
+}
+@if (!string.IsNullOrEmpty(Model.SuccessMessage))
+{
+    <div class="staff-alert staff-alert-success">@Model.SuccessMessage</div>
+}
 
 <div class="rooms-mgmt-grid">
+    @foreach (var room in Model.Rooms)
+    {
+        var badgeClass = room.DisplayStatus switch
+        {
+            "Available"   => "badge-available",
+            "Occupied"    => "badge-occupied",
+            _             => "badge-maintenance"
+        };
 
-    <div class="room-mgmt-card">
-        <div class="room-mgmt-top">
-            <span class="room-mgmt-name">Room 101</span>
-            <span class="badge-available">Available</span>
+        <div class="room-mgmt-card">
+            <div class="room-mgmt-top">
+                <span class="room-mgmt-name">Room @room.RoomNumber</span>
+                <span class="@badgeClass">@room.DisplayStatus</span>
+            </div>
+            <div class="room-mgmt-sub">@room.Type · Max @room.Capacity Guests</div>
+            <div class="room-mgmt-price">$@room.PricePerNight.ToString("0.##")/night</div>
+            <div class="room-mgmt-actions">
+                <button class="btn-edit" onclick="openEditModal(@room.RoomId, '@room.RoomNumber', '@room.Type', @room.PricePerNight, @room.Capacity, '@Html.Raw(room.Description.Replace("'", "\\'"))')">
+                    Edit
+                </button>
+                <form method="post" asp-page-handler="Toggle" style="margin:0">
+                    <input type="hidden" name="roomId" value="@room.RoomId" />
+                    <button type="submit" class="btn-key" title="@(room.IsAvailable ? "Set Unavailable" : "Set Available")">
+                        <i class="fa-solid fa-key"></i>
+                    </button>
+                </form>
+            </div>
         </div>
-        <div class="room-mgmt-sub">Standard · Max 2 Guests</div>
-        <div class="room-mgmt-price">$120/night</div>
-        <div class="room-mgmt-actions">
-            <button class="btn-edit">Edit</button>
-            <button class="btn-key"><i class="fa-solid fa-key"></i></button>
-        </div>
-    </div>
-
-    <div class="room-mgmt-card">
-        <div class="room-mgmt-top">
-            <span class="room-mgmt-name">Room 102</span>
-            <span class="badge-available">Available</span>
-        </div>
-        <div class="room-mgmt-sub">Standard · Max 2 Guests</div>
-        <div class="room-mgmt-price">$120/night</div>
-        <div class="room-mgmt-actions">
-            <button class="btn-edit">Edit</button>
-            <button class="btn-key"><i class="fa-solid fa-key"></i></button>
-        </div>
-    </div>
-
-    <div class="room-mgmt-card">
-        <div class="room-mgmt-top">
-            <span class="room-mgmt-name">Room 201</span>
-            <span class="badge-available">Available</span>
-        </div>
-        <div class="room-mgmt-sub">Deluxe · Max 3 Guests</div>
-        <div class="room-mgmt-price">$220/night</div>
-        <div class="room-mgmt-actions">
-            <button class="btn-edit">Edit</button>
-            <button class="btn-key"><i class="fa-solid fa-key"></i></button>
-        </div>
-    </div>
-
-    <div class="room-mgmt-card">
-        <div class="room-mgmt-top">
-            <span class="room-mgmt-name">Room 202</span>
-            <span class="badge-occupied">Occupied</span>
-        </div>
-        <div class="room-mgmt-sub">Deluxe · Max 3 Guests</div>
-        <div class="room-mgmt-price">$220/night</div>
-        <div class="room-mgmt-actions">
-            <button class="btn-edit">Edit</button>
-            <button class="btn-key"><i class="fa-solid fa-key"></i></button>
-        </div>
-    </div>
-
-    <div class="room-mgmt-card">
-        <div class="room-mgmt-top">
-            <span class="room-mgmt-name">Room 301</span>
-            <span class="badge-available">Available</span>
-        </div>
-        <div class="room-mgmt-sub">Suite · Max 4 Guests</div>
-        <div class="room-mgmt-price">$450/night</div>
-        <div class="room-mgmt-actions">
-            <button class="btn-edit">Edit</button>
-            <button class="btn-key"><i class="fa-solid fa-key"></i></button>
-        </div>
-    </div>
-
-    <div class="room-mgmt-card">
-        <div class="room-mgmt-top">
-            <span class="room-mgmt-name">Room 302</span>
-            <span class="badge-maintenance">Maintenance</span>
-        </div>
-        <div class="room-mgmt-sub">Suite · Max 4 Guests</div>
-        <div class="room-mgmt-price">$450/night</div>
-        <div class="room-mgmt-actions">
-            <button class="btn-edit">Edit</button>
-            <button class="btn-key"><i class="fa-solid fa-key"></i></button>
-        </div>
-    </div>
-
+    }
 </div>
+
+<!-- ── Add Room Modal ── -->
+<div class="modal-backdrop" id="addModal" style="display:none">
+    <div class="modal-card">
+        <div class="modal-header">
+            <h3>Add New Room</h3>
+            <button class="modal-close" onclick="closeModal('addModal')">&times;</button>
+        </div>
+        <form method="post" asp-page-handler="Add">
+            <div class="modal-body">
+                <div class="form-row-modal">
+                    <div class="mform-group">
+                        <label>Room Number</label>
+                        <input type="text" name="roomNumber" placeholder="e.g. 103" required />
+                    </div>
+                    <div class="mform-group">
+                        <label>Type</label>
+                        <select name="type" required>
+                            <option value="SINGLE">Single</option>
+                            <option value="DOUBLE">Double</option>
+                            <option value="DELUXE">Deluxe</option>
+                            <option value="SUITE">Suite</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row-modal">
+                    <div class="mform-group">
+                        <label>Price / Night ($)</label>
+                        <input type="number" name="pricePerNight" min="1" step="0.01" required />
+                    </div>
+                    <div class="mform-group">
+                        <label>Capacity</label>
+                        <input type="number" name="capacity" min="1" max="10" required />
+                    </div>
+                </div>
+                <div class="mform-group">
+                    <label>Description</label>
+                    <textarea name="description" rows="2" placeholder="Optional description"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-modal-cancel" onclick="closeModal('addModal')">Cancel</button>
+                <button type="submit" class="btn-modal-confirm">Add Room</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ── Edit Room Modal ── -->
+<div class="modal-backdrop" id="editModal" style="display:none">
+    <div class="modal-card">
+        <div class="modal-header">
+            <h3>Edit Room</h3>
+            <button class="modal-close" onclick="closeModal('editModal')">&times;</button>
+        </div>
+        <form method="post" asp-page-handler="Edit">
+            <input type="hidden" name="roomId" id="editRoomId" />
+            <div class="modal-body">
+                <div class="form-row-modal">
+                    <div class="mform-group">
+                        <label>Room Number</label>
+                        <input type="text" name="roomNumber" id="editRoomNumber" required />
+                    </div>
+                    <div class="mform-group">
+                        <label>Type</label>
+                        <select name="type" id="editType" required>
+                            <option value="SINGLE">Single</option>
+                            <option value="DOUBLE">Double</option>
+                            <option value="DELUXE">Deluxe</option>
+                            <option value="SUITE">Suite</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row-modal">
+                    <div class="mform-group">
+                        <label>Price / Night ($)</label>
+                        <input type="number" name="pricePerNight" id="editPrice" min="1" step="0.01" required />
+                    </div>
+                    <div class="mform-group">
+                        <label>Capacity</label>
+                        <input type="number" name="capacity" id="editCapacity" min="1" max="10" required />
+                    </div>
+                </div>
+                <div class="mform-group">
+                    <label>Description</label>
+                    <textarea name="description" id="editDescription" rows="2"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-modal-cancel" onclick="closeModal('editModal')">Cancel</button>
+                <button type="submit" class="btn-modal-confirm">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    function openAddModal() {
+        document.getElementById('addModal').style.display = 'flex';
+    }
+
+    function openEditModal(id, number, type, price, capacity, desc) {
+        document.getElementById('editRoomId').value       = id;
+        document.getElementById('editRoomNumber').value   = number;
+        document.getElementById('editType').value         = type;
+        document.getElementById('editPrice').value        = price;
+        document.getElementById('editCapacity').value     = capacity;
+        document.getElementById('editDescription').value  = desc;
+        document.getElementById('editModal').style.display = 'flex';
+    }
+
+    function closeModal(id) {
+        document.getElementById(id).style.display = 'none';
+    }
+
+    // Close on backdrop click
+    document.querySelectorAll('.modal-backdrop').forEach(el => {
+        el.addEventListener('click', e => { if (e.target === el) closeModal(el.id); });
+    });
+</script>
+}

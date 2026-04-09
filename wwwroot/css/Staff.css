@@ -441,3 +441,139 @@
 .revenue-type { font-size: 15px; font-weight: 600; color: #1a1a1a; }
 .revenue-count { font-size: 12.5px; color: #999; margin-top: 3px; }
 .revenue-amount { font-size: 16px; font-weight: 700; color: #b07a2a; }
+
+/* Alerts */
+.staff-alert {
+    padding: 12px 18px;
+    border-radius: 8px;
+    font-size: 13.5px;
+    font-weight: 500;
+    margin-bottom: 20px;
+}
+
+.staff-alert-error   { background: #fdecea; color: #c0392b; border: 1px solid #f5c6cb; }
+.staff-alert-success { background: #e8f8f0; color: #1e7e4a; border: 1px solid #b7e4c7; }
+
+/* Modal Backdrop */
+.modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal-card {
+    background: white;
+    border-radius: 14px;
+    width: 500px;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.18);
+    overflow: hidden;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    border-bottom: 1px solid #f0ebe4;
+}
+
+.modal-header h3 {
+    font-size: 17px;
+    font-weight: 700;
+    color: #1a1a1a;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 22px;
+    color: #aaa;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.modal-close:hover { color: #333; }
+
+.modal-body {
+    padding: 22px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.form-row-modal {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+}
+
+.mform-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.mform-group label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #444;
+}
+
+.mform-group input,
+.mform-group select,
+.mform-group textarea {
+    padding: 10px 12px;
+    border: 1.5px solid #e0dbd3;
+    border-radius: 8px;
+    font-size: 13.5px;
+    color: #333;
+    outline: none;
+    transition: border 0.2s;
+    background: white;
+    resize: none;
+}
+
+.mform-group input:focus,
+.mform-group select:focus,
+.mform-group textarea:focus {
+    border-color: #b07a2a;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 16px 24px;
+    border-top: 1px solid #f0ebe4;
+}
+
+.btn-modal-cancel {
+    padding: 10px 20px;
+    border: 1.5px solid #ddd;
+    border-radius: 8px;
+    background: white;
+    font-size: 13.5px;
+    color: #555;
+    cursor: pointer;
+    transition: border-color 0.2s;
+}
+
+.btn-modal-cancel:hover { border-color: #aaa; }
+
+.btn-modal-confirm {
+    padding: 10px 22px;
+    background: #b07a2a;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 13.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-modal-confirm:hover { background: #9a6a22; }

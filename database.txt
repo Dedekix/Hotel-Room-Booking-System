@@ -1,0 +1,83 @@
+-- Hotel Room Booking System
+-- Database: Microsoft SQL Server
+
+use HotelDB;
+
+CREATE TABLE Users (
+    userId       INT IDENTITY(1,1) PRIMARY KEY,
+    fullName     VARCHAR(100) NOT NULL,
+    email        VARCHAR(100) NOT NULL UNIQUE,
+    phone        VARCHAR(20),
+    role         VARCHAR(10)  NOT NULL CHECK (role IN ('CUSTOMER', 'STAFF', 'ADMIN')),
+    isActive     BIT          NOT NULL DEFAULT 1,
+    createdAt    DATETIME     NOT NULL DEFAULT GETDATE(),
+    lastLoginAt  DATETIME     NULL
+);
+
+CREATE TABLE OtpCodes (
+    otpId     INT IDENTITY(1,1) PRIMARY KEY,
+    userId    INT         NOT NULL FOREIGN KEY REFERENCES Users(userId),
+    code      VARCHAR(6)  NOT NULL,
+    expiresAt DATETIME    NOT NULL,
+    isUsed    BIT         NOT NULL DEFAULT 0,
+    createdAt DATETIME    NOT NULL DEFAULT GETDATE()
+);
+
+CREATE TABLE Rooms (
+    roomId       INT IDENTITY(1,1) PRIMARY KEY,
+    roomNumber   VARCHAR(10)    NOT NULL UNIQUE,
+    type         VARCHAR(10)    NOT NULL CHECK (type IN ('SINGLE', 'DOUBLE', 'SUITE', 'DELUXE')),
+    pricePerNight DECIMAL(10,2) NOT NULL,
+    capacity     INT            NOT NULL,
+    isAvailable  BIT            NOT NULL DEFAULT 1,
+    description  VARCHAR(255)
+);
+
+CREATE TABLE Bookings (
+    bookingId    INT IDENTITY(1,1) PRIMARY KEY,
+    userId       INT            NOT NULL FOREIGN KEY REFERENCES Users(userId),
+    roomId       INT            NOT NULL FOREIGN KEY REFERENCES Rooms(roomId),
+    checkInDate  DATE           NOT NULL,
+    checkOutDate DATE           NOT NULL,
+    guestCount   INT            NOT NULL,
+    totalPrice   DECIMAL(10,2)  NOT NULL,
+    status       VARCHAR(15)    NOT NULL DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'CONFIRMED', 'CHECKED_IN', 'CHECKED_OUT', 'CANCELLED')),
+    createdAt    DATETIME       NOT NULL DEFAULT GETDATE(),
+    CONSTRAINT CHK_Dates CHECK (checkOutDate > checkInDate)
+);
+
+CREATE TABLE Payments (
+    paymentId   INT IDENTITY(1,1) PRIMARY KEY,
+    bookingId   INT           NOT NULL FOREIGN KEY REFERENCES Bookings(bookingId),
+    amount      DECIMAL(10,2) NOT NULL,
+    paymentDate DATETIME      NOT NULL DEFAULT GETDATE(),
+    method      VARCHAR(50)   NOT NULL,
+    status      VARCHAR(50)   NOT NULL CHECK (status IN ('PENDING', 'COMPLETED', 'FAILED', 'REFUNDED'))
+);
+
+CREATE TABLE Events (
+    eventId     INT IDENTITY(1,1) PRIMARY KEY,
+    title       VARCHAR(100)  NOT NULL,
+    description VARCHAR(255),
+    eventDate   DATETIME      NOT NULL,
+    location    VARCHAR(100)  NOT NULL,
+    capacity    INT           NOT NULL,
+    price       DECIMAL(10,2) NOT NULL,
+    createdBy   INT           NOT NULL FOREIGN KEY REFERENCES Users(userId)
+);
+
+CREATE TABLE EventBookings (
+    eventBookingId INT IDENTITY(1,1) PRIMARY KEY,
+    eventId        INT         NOT NULL FOREIGN KEY REFERENCES Events(eventId),
+    userId         INT         NOT NULL FOREIGN KEY REFERENCES Users(userId),
+    bookedAt       DATETIME    NOT NULL DEFAULT GETDATE(),
+    status         VARCHAR(10) NOT NULL DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'CONFIRMED', 'CANCELLED'))
+);
+
+CREATE TABLE Reports (
+    reportId      INT IDENTITY(1,1) PRIMARY KEY,
+    generatedAt   DATETIME     NOT NULL DEFAULT GETDATE(),
+    type          VARCHAR(50)  NOT NULL,
+    data          VARCHAR(MAX) NOT NULL,
+    generatedBy   INT          NOT NULL FOREIGN KEY REFERENCES Users(userId)
+);
