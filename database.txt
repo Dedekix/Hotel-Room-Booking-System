@@ -1,7 +1,7 @@
 -- Hotel Room Booking System
 -- Database: Microsoft SQL Server
 
-use HotelDB;
+USE HotelBookingDB;
 
 CREATE TABLE Users (
     userId       INT IDENTITY(1,1) PRIMARY KEY,
@@ -81,3 +81,65 @@ CREATE TABLE Reports (
     data          VARCHAR(MAX) NOT NULL,
     generatedBy   INT          NOT NULL FOREIGN KEY REFERENCES Users(userId)
 );
+CREATE TABLE ContactMessages (
+    messageId  INT IDENTITY(1,1) PRIMARY KEY,
+    fullName   VARCHAR(100)  NOT NULL,
+    email      VARCHAR(100)  NOT NULL,
+    subject    VARCHAR(200)  NOT NULL,
+    message    VARCHAR(MAX)  NOT NULL,
+    sentAt     DATETIME      NOT NULL DEFAULT GETDATE(),
+    isRead     BIT           NOT NULL DEFAULT 0
+);
+
+INSERT INTO Rooms (roomNumber, type, pricePerNight, capacity, isAvailable, description) VALUES
+-- SINGLE
+('101', 'SINGLE', 89.99,  1, 1, 'Cozy single room with a queen bed and city view'),
+('102', 'SINGLE', 89.99,  1, 1, 'Comfortable single room with garden view'),
+-- DOUBLE
+('201', 'DOUBLE', 149.99, 2, 1, 'Spacious double room with two queen beds'),
+('202', 'DOUBLE', 149.99, 2, 1, 'Double room with balcony and pool view'),
+-- SUITE
+('301', 'SUITE',  299.99, 3, 1, 'Luxury suite with living area and king bed'),
+('302', 'SUITE',  299.99, 3, 1, 'Corner suite with panoramic city views'),
+-- DELUXE
+('401', 'DELUXE', 199.99, 2, 1, 'Deluxe room with premium furnishings and sea view'),
+('402', 'DELUXE', 199.99, 2, 1, 'Deluxe room with jacuzzi and mountain view');
+
+admin user
+INSERT INTO Users (fullName, email, phone, role, isActive) VALUES
+('Admin', 'admin@grandhaven.com', '+250791375079', 'ADMIN', 1);
+
+events (createdBy = admin userId 1)
+INSERT INTO Events (title, description, eventDate, location, capacity, price, createdBy) VALUES
+('Talent Show',     'Watch incredible performances from talented local artists — singers, dancers, comedians and more.',          '2026-05-02 19:00:00', 'Grand Hall',       200, 0.00,  1),
+('Culture Festival','Celebrate the richness of local culture through traditional music, dance, food and art.',                   '2026-05-12 18:00:00', 'Outdoor Terrace',  300, 15.00, 1),
+('Spa Retreat',     'A full weekend of massages, aromatherapy, and wellness treatments in our world-class spa.',                 '2026-05-18 09:00:00', 'Wellness Centre',   50, 50.00, 1),
+('Anniversary Gala','Black-tie celebration — live performances, gourmet dinner, and dancing.',                                   '2026-05-01 19:00:00', 'Ballroom',         150, 75.00, 1);
+
+Users
+INSERT INTO Users (fullName, email, phone, role, isActive) VALUES
+('Ariane',    'ariane@example.com',    '+250788394526', 'CUSTOMER', 1),
+('Noah', 'noah@example.com',   '+250733661571', 'CUSTOMER', 1),
+('Christophe', 'christophe@example.com', '+250791302106', 'CUSTOMER', 1);
+
+Bookings
+INSERT INTO Bookings (userId, roomId, checkInDate, checkOutDate, guestCount, totalPrice, status) VALUES
+(2, 1, '2026-05-01', '2026-05-03', 1, 179.98,  'CONFIRMED'),
+(2, 3, '2026-05-05', '2026-05-08', 2, 449.97,  'CHECKED_IN'),
+(3, 5, '2026-05-10', '2026-05-12', 2, 599.98,  'CONFIRMED'),
+(4, 7, '2026-05-15', '2026-05-17', 2, 399.98,  'PENDING'),
+(4, 2, '2026-04-20', '2026-04-22', 1, 179.98,  'CHECKED_OUT');
+
+Contact Messages
+INSERT INTO ContactMessages (fullName, email, subject, message, isRead) VALUES
+('Ken',    'ken@example.com',    'Room Inquiry',       'Do you have rooms available for the long weekend?', 0),
+('Sarah', 'sarah@example.com',   'Event Question',     'Is the Spa Retreat open to non-guests?',            0),
+('Michael', 'michael@example.com', 'Booking Issue',      'I need to change my check-in date.',                1),
+('Alice',  'alice@example.com',   'General Inquiry',    'What amenities are included with the suite?',       0);
+
+Event Bookings
+INSERT INTO EventBookings (eventId, userId, status) VALUES
+(1, 2, 'CONFIRMED'),
+(2, 3, 'CONFIRMED'),
+(3, 4, 'CONFIRMED'),
+(4, 2, 'CONFIRMED');

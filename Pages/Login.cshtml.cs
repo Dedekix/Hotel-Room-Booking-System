@@ -28,6 +28,7 @@ namespace HotelBookingSystem.Pages
                 return Page();
             }
 
+            string role = "";
             try
             {
                 using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -43,10 +44,11 @@ namespace HotelBookingSystem.Pages
                         {
                             if (reader.Read())
                             {
+                                role = reader["role"].ToString()!;
                                 HttpContext.Session.SetString("UserId", reader["userId"].ToString()!);
                                 HttpContext.Session.SetString("UserFullName", reader["fullName"].ToString()!);
                                 HttpContext.Session.SetString("UserEmail", reader["email"].ToString()!);
-                                HttpContext.Session.SetString("UserRole", reader["role"].ToString()!);
+                                HttpContext.Session.SetString("UserRole", role);
                             }
                             else
                             {
@@ -72,7 +74,7 @@ namespace HotelBookingSystem.Pages
                 return Page();
             }
 
-            return RedirectToPage("/Index");
+            return role == "ADMIN" ? RedirectToPage("/Admin/Dashboard") : RedirectToPage("/Index");
         }
     }
 }

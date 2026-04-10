@@ -1,0 +1,39 @@
+@page
+@model HotelBookingSystem.Pages.Admin.BookingsModel
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"]      = "Bookings";
+    ViewData["ActivePage"] = "Bookings";
+}
+
+<h1 class="staff-page-title">All Bookings</h1>
+
+<table class="bookings-table">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Guest</th>
+            <th>Room</th>
+            <th>Check-in</th>
+            <th>Check-out</th>
+            <th>Guests</th>
+            <th>Total</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var b in Model.Bookings)
+        {
+            <tr>
+                <td><span class="booking-id">#@b.BookingId</span></td>
+                <td><span class="guest-name">@b.GuestName</span><br /><small style="color:#999">@b.Email</small></td>
+                <td>Room @b.RoomNumber</td>
+                <td>@b.CheckIn</td>
+                <td>@b.CheckOut</td>
+                <td>@b.GuestCount</td>
+                <td class="total-amount">$@b.TotalPrice.ToString("0.##")</td>
+                <td><span class="badge-status badge-confirmed">@b.Status</span></td>
+            </tr>
+        }
+    </tbody>
+</table>

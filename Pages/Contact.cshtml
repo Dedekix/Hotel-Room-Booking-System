@@ -1,0 +1,112 @@
+@page
+@model HotelBookingSystem.Pages.ContactModel
+@{
+    ViewData["Title"] = "Contact";
+}
+<link rel="stylesheet" href="~/css/Contact.css" />
+
+<div class="contact-page">
+
+    <div class="contact-header">
+        <h1>Get in Touch</h1>
+        <p>We'd love to hear from you. Reach out and we'll respond as soon as possible.</p>
+    </div>
+
+    <div class="contact-layout">
+
+        <!-- LEFT: Info -->
+        <div class="contact-info">
+            <div class="info-card">
+                <i class="fa-solid fa-location-dot"></i>
+                <div>
+                    <h4>Address</h4>
+                    <p>Kigali, Rwanda</p>
+                </div>
+            </div>
+            <div class="info-card">
+                <i class="fa-solid fa-phone"></i>
+                <div>
+                    <h4>Phone</h4>
+                    <p>+250 791 375 079</p>
+                </div>
+            </div>
+            <div class="info-card">
+                <i class="fa-solid fa-envelope"></i>
+                <div>
+                    <h4>Email</h4>
+                    <p>info@grandhaven.com</p>
+                </div>
+            </div>
+            <div class="info-card">
+                <i class="fa-solid fa-clock"></i>
+                <div>
+                    <h4>Reception Hours</h4>
+                    <p>24 / 7 — Always open</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT: Form -->
+        <div class="contact-form-wrap">
+            @if (Model.Sent)
+            {
+                <div class="contact-success">
+                    <i class="fa-solid fa-circle-check"></i> Your message has been sent. We'll get back to you shortly.
+                </div>
+            }
+            else
+            {
+                @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+            {
+                <div class="contact-error">@Model.ErrorMessage</div>
+            }
+            <form method="post">
+                    <div class="form-group">
+                        <label>Full Name</label>
+                        <input type="text" name="fullName" placeholder="" required />
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" name="email" placeholder="" required />
+                    </div>
+                    <div class="form-group">
+                        <label>Subject</label>
+                        <input type="text" name="subject" placeholder="" required />
+                    </div>
+                    <div class="form-group">
+                        <label>Message</label>
+                        <textarea name="message" rows="5" placeholder="" required></textarea>
+                    </div>
+                    <button type="submit" class="btn-send">Send Message</button>
+                </form>
+            }
+        </div>
+
+    </div>
+</div>
+
+<!-- FOOTER -->
+<footer class="contact-footer">
+    <div class="footer-inner">
+        <div class="footer-col">
+            <h3><i class="fa-solid fa-building fa-sm" style="color:#b07a2a"></i> Grand Haven</h3>
+            <p>Experience luxury and comfort in the heart of the city. Your perfect getaway awaits.</p>
+        </div>
+        <div class="footer-col">
+            <h4>Contact</h4>
+            <p><i class="fa-solid fa-phone" style="color:#b07a2a"></i> +250791375079</p>
+            <p><i class="fa-solid fa-envelope" style="color:#b07a2a"></i> info@grandhaven.com</p>
+            <p><i class="fa-solid fa-location-dot" style="color:#b07a2a"></i> Kigali, Rwanda</p>
+        </div>
+        <div class="footer-col">
+            <h4>Quick Links</h4>
+            <p><a href="/Index">Home</a></p>
+            <p><a href="/Rooms">Our Rooms</a></p>
+            <p><a href="/Events">Events</a></p>
+            <p><a href="/Contact">Contact</a></p>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        <p>&copy; 2026 Grand Haven Hotel. All rights reserved.</p>
+    </div>
+</footer>

@@ -22,12 +22,17 @@
             <div class="nav-center">
                 <a href="/Index">Home</a>
                 <a href="/Rooms" class="@(ViewData["Title"]?.ToString() == "Rooms" ? "nav-active" : "")">Rooms</a>
-                <a href="#">My Bookings</a>
+                <a href="/Events">Events</a>
+                <a href="/Contact">Contact</a>
             </div>
 
             <div class="nav-right">
                 <a href="/Login" class="login-link"><i class="fa-regular fa-user"></i> Login</a>
                 <a href="/Staff/Dashboard" class="staff-portal-link">Staff Portal</a>
+                @if (Context.Session.GetString("UserRole") == "ADMIN")
+                {
+                    <a href="/Admin/Dashboard" class="staff-portal-link" style="background:#b07a2a">Admin Panel</a>
+                }
             </div>
         </nav>
     </header>

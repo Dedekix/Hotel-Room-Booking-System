@@ -1,0 +1,49 @@
+@page
+@model HotelBookingSystem.Pages.Admin.MessagesModel
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"]      = "Messages";
+    ViewData["ActivePage"] = "Messages";
+}
+
+<h1 class="staff-page-title">Contact Messages</h1>
+
+<table class="bookings-table">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Subject</th>
+            <th>Message</th>
+            <th>Sent At</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var m in Model.Messages)
+        {
+            <tr style="@(!m.IsRead ? "font-weight:600" : "")">
+                <td><span class="booking-id">#@m.MessageId</span></td>
+                <td><span class="guest-name">@m.FullName</span></td>
+                <td style="color:#999;font-size:13px">@m.Email</td>
+                <td>@m.Subject</td>
+                <td style="max-width:260px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">@m.Message</td>
+                <td style="font-size:13px;color:#999">@m.SentAt</td>
+                <td>
+                    @if (!m.IsRead)
+                    {
+                        <form method="post">
+                            <input type="hidden" name="messageId" value="@m.MessageId" />
+                            <button type="submit" class="action-link" style="color:#b07a2a">Mark Read</button>
+                        </form>
+                    }
+                    else
+                    {
+                        <span style="font-size:12px;color:#aaa">Read</span>
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

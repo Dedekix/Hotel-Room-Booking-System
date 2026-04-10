@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Admin Panel</title>
+    <script type="importmap"></script>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/Staff.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+</head>
+<body class="staff-body">
+
+    <div class="staff-wrapper">
+        <aside class="staff-sidebar">
+            <div class="sidebar-logo">
+                <i class="fa-solid fa-shield-halved" style="color:#b07a2a"></i>
+                <span>Admin Panel</span>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="/Admin/Dashboard" class="nav-item @(ViewData["ActivePage"]?.ToString() == "Dashboard" ? "active" : "")">
+                    <i class="fa-solid fa-gauge"></i> Dashboard
+                </a>
+                <a href="/Admin/Rooms" class="nav-item @(ViewData["ActivePage"]?.ToString() == "Rooms" ? "active" : "")">
+                    <i class="fa-solid fa-bed"></i> Rooms
+                </a>
+                <a href="/Admin/Bookings" class="nav-item @(ViewData["ActivePage"]?.ToString() == "Bookings" ? "active" : "")">
+                    <i class="fa-regular fa-calendar"></i> Bookings
+                </a>
+                <a href="/Admin/Messages" class="nav-item @(ViewData["ActivePage"]?.ToString() == "Messages" ? "active" : "")">
+                    <i class="fa-regular fa-envelope"></i> Messages
+                </a>
+            </nav>
+
+            <a href="/Index" class="sidebar-exit">
+                <i class="fa-solid fa-arrow-right-from-bracket"></i> Exit
+            </a>
+        </aside>
+
+        <main class="staff-main">
+            @RenderBody()
+        </main>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
