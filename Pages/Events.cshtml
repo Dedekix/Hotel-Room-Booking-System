@@ -7,14 +7,20 @@
 
 <div class="events-page">
     <div class="events-header">
-        <h1>Events at Grand Haven</h1>
-        <p>Be part of something extraordinary — reserve your spot today</p>
+        <div>
+            <h1>Events at Grand Haven</h1>
+            <p>Be part of something extraordinary — reserve your spot today</p>
+        </div>
+        <div class="events-search">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="eventSearch" placeholder="Search events..." oninput="filterEvents()" />
+        </div>
     </div>
 
-    <div class="events-grid">
+    <div class="events-grid" id="eventsGrid">
         @foreach (var ev in Model.Events)
         {
-            <div class="event-card">
+            <div class="event-card" data-title="@ev.Title.ToLower()">
                 <img src="/@ev.ImagePath" alt="@ev.Title" />
                 <div class="event-body">
                     <span class="event-badge">@ev.Badge</span>
@@ -38,6 +44,7 @@
             </div>
         }
     </div>
+    <p class="events-no-results" id="noResults" style="display:none">No events match your search.</p>
 </div>
 
 
@@ -67,4 +74,18 @@
     </div>
 </footer>
 
-
+@section Scripts {
+<script>
+    function filterEvents() {
+        const q = document.getElementById('eventSearch').value.toLowerCase();
+        const cards = document.querySelectorAll('#eventsGrid .event-card');
+        let visible = 0;
+        cards.forEach(card => {
+            const match = card.dataset.title.includes(q);
+            card.style.display = match ? '' : 'none';
+            if (match) visible++;
+        });
+        document.getElementById('noResults').style.display = visible === 0 ? 'block' : 'none';
+    }
+</script>
+}
