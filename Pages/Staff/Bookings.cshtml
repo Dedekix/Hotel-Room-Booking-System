@@ -27,51 +27,53 @@
         </tr>
     </thead>
     <tbody>
-        <tr>
-            <td class="booking-id">B001</td>
-            <td class="guest-name">John Smith</td>
-            <td>202</td>
-            <td>2026-03-19 &rarr; 2026-03-22</td>
-            <td class="total-amount">$660</td>
-            <td><span class="badge-status badge-checkedin">Checked-In</span></td>
-            <td><button class="action-link">Check Out</button></td>
-        </tr>
-        <tr>
-            <td class="booking-id">B002</td>
-            <td class="guest-name">Sarah Johnson</td>
-            <td>201</td>
-            <td>2026-03-20 &rarr; 2026-03-23</td>
-            <td class="total-amount">$660</td>
-            <td><span class="badge-status badge-confirmed">Confirmed</span></td>
-            <td><button class="action-link">Check In</button></td>
-        </tr>
-        <tr>
-            <td class="booking-id">B003</td>
-            <td class="guest-name">Mike Davis</td>
-            <td>301</td>
-            <td>2026-03-21 &rarr; 2026-03-25</td>
-            <td class="total-amount">$1800</td>
-            <td><span class="badge-status badge-confirmed">Confirmed</span></td>
-            <td><button class="action-link">Check In</button></td>
-        </tr>
-        <tr>
-            <td class="booking-id">B004</td>
-            <td class="guest-name">Emily Chen</td>
-            <td>101</td>
-            <td>2026-03-10 &rarr; 2026-03-13</td>
-            <td class="total-amount">$360</td>
-            <td><span class="badge-status badge-completed">Completed</span></td>
-            <td></td>
-        </tr>
-        <tr>
-            <td class="booking-id">B005</td>
-            <td class="guest-name">James Wilson</td>
-            <td>102</td>
-            <td>2026-03-25 &rarr; 2026-03-27</td>
-            <td class="total-amount">$240</td>
-            <td><span class="badge-status badge-confirmed">Confirmed</span></td>
-            <td><button class="action-link">Check In</button></td>
-        </tr>
+        @foreach (var b in Model.Bookings)
+        {
+            string badgeClass = b.Status switch
+            {
+                "CHECKED_IN" => "badge-checkedin",
+                "CONFIRMED"  => "badge-confirmed",
+                "COMPLETED"  => "badge-completed",
+                _            => "badge-confirmed"
+            };
+            string badgeLabel = b.Status switch
+            {
+                "CHECKED_IN" => "Checked-In",
+                "CONFIRMED"  => "Confirmed",
+                "COMPLETED"  => "Completed",
+                "CANCELLED"  => "Cancelled",
+                _            => b.Status
+            };
+
+            <tr>
+                <td class="booking-id">B@(b.BookingId.ToString("D3"))</td>
+                <td class="guest-name">@b.GuestName</td>
+                <td>@b.RoomNumber</td>
+                <td>@b.CheckIn.ToString("yyyy-MM-dd") &rarr; @b.CheckOut.ToString("yyyy-MM-dd")</td>
+                <td class="total-amount">$@b.TotalAmount.ToString("0")</td>
+                <td><span class="badge-status @badgeClass">@badgeLabel</span></td>
+                <td>
+                    @if (b.Status == "CONFIRMED")
+                    {
+                        <form method="post" asp-page-handler="CheckIn" style="display:inline">
+                            <input type="hidden" name="bookingId" value="@b.BookingId" />
+                            <button class="action-link">Check In</button>
+                        </form>
+                    }
+                    else if (b.Status == "CHECKED_IN")
+                    {
+                        <form method="post" asp-page-handler="CheckOut" style="display:inline">
+                            <input type="hidden" name="bookingId" value="@b.BookingId" />
+                            <button class="action-link">Check Out</button>
+                        </form>
+                    }
+                </td>
+            </tr>
+        }
+        @if (!Model.Bookings.Any())
+        {
+            <tr><td colspan="7" style="text-align:center;padding:32px;color:#aaa;">No bookings found.</td></tr>
+        }
     </tbody>
 </table>
 
