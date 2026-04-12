@@ -1,0 +1,148 @@
+@page "{eventId:int}"
+@model HotelBookingSystem.Pages.BookEventModel
+@{
+    ViewData["Title"] = "Book Event";
+}
+<link rel="stylesheet" href="~/css/BookRoom.css" />
+<link rel="stylesheet" href="~/css/BookEvent.css" />
+
+<div class="bookroom-page">
+
+    <a href="/Events" class="back-link"><i class="fa-solid fa-arrow-left"></i> Back to Events</a>
+
+    @if (Model.Confirmed)
+    {
+        <div class="bookevent-confirmed">
+            <div class="confirmed-icon"><i class="fa-solid fa-circle-check"></i></div>
+            <h2>You're In!</h2>
+            <p>Your spot for <strong>@Model.EventTitle</strong> has been reserved.</p>
+            <p class="confirmed-sub"><i class="fa-regular fa-calendar"></i> @Model.EventDateDisplay &nbsp;·&nbsp; <i class="fa-solid fa-location-dot"></i> @Model.Location</p>
+            <div class="confirmed-actions">
+                <a href="/Events" class="btn-confirm" style="text-decoration:none;display:inline-block;text-align:center;width:auto;padding:13px 32px">Browse More Events</a>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="bookroom-layout">
+
+            <!-- LEFT: Event Info -->
+            <div class="bookroom-left">
+                <img src="/@Model.ImagePath" alt="@Model.EventTitle" class="bookroom-img" />
+                <h2 class="bookroom-room-title">@Model.EventTitle</h2>
+                <p class="bookroom-room-desc">@Model.Description</p>
+
+                <div class="bookevent-meta">
+                    <div class="bookevent-meta-item">
+                        <i class="fa-regular fa-calendar"></i>
+                        <span>@Model.EventDateDisplay</span>
+                    </div>
+                    <div class="bookevent-meta-item">
+                        <i class="fa-solid fa-location-dot"></i>
+                        <span>@Model.Location</span>
+                    </div>
+                    <div class="bookevent-meta-item">
+                        <i class="fa-solid fa-users"></i>
+                        <span>@Model.SpotsLeft spots remaining</span>
+                    </div>
+                </div>
+
+                <div class="bookroom-pricing">
+                    @if (Model.Price == 0)
+                    {
+                        <span class="price-night" style="color:#2e7d52">Free</span>
+                    }
+                    else
+                    {
+                        <span class="price-night">
+                            <span class="dollar">$</span>@Model.Price.ToString("0.##")<span class="per"> / person</span>
+                        </span>
+                    }
+                </div>
+            </div>
+
+            <!-- RIGHT: Booking Form -->
+            <div class="bookroom-right">
+                <h2>Reserve Your Spot</h2>
+
+                @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+                {
+                    <div class="booking-error">@Model.ErrorMessage</div>
+                }
+
+                <form method="post">
+                    <input type="hidden" name="eventId" value="@Model.EventId" />
+
+                    <div class="form-group">
+                        <label>Full Name</label>
+                        <input type="text" name="fullName" placeholder="John Smith"
+                               value="@Model.PrefillName" required />
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" name="email" placeholder="john@email.com"
+                               value="@Model.PrefillEmail" required />
+                    </div>
+
+                    <div class="bookevent-summary">
+                        <div class="summary-row">
+                            <span>Event</span>
+                            <span>@Model.EventTitle</span>
+                        </div>
+                        <div class="summary-row">
+                            <span>Date</span>
+                            <span>@Model.EventDateDisplay</span>
+                        </div>
+                        <div class="summary-row">
+                            <span>Location</span>
+                            <span>@Model.Location</span>
+                        </div>
+                        @if (Model.Price > 0)
+                        {
+                            <div class="summary-row summary-total">
+                                <span>Price</span>
+                                <span>$@Model.Price.ToString("0.##") / person</span>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="summary-row summary-total">
+                                <span>Price</span>
+                                <span style="color:#2e7d52;font-weight:700">Free</span>
+                            </div>
+                        }
+                    </div>
+
+                    <button type="submit" class="btn-confirm">Confirm Reservation</button>
+                </form>
+            </div>
+
+        </div>
+    }
+</div>
+
+<!-- FOOTER -->
+<footer class="rooms-footer">
+    <div class="footer-inner">
+        <div class="footer-col">
+            <h3><i class="fa-solid fa-building fa-sm" style="color:#b07a2a"></i> Grand Haven</h3>
+            <p>Experience luxury and comfort in the heart of the city. Your perfect getaway awaits.</p>
+        </div>
+        <div class="footer-col">
+            <h4>Contact</h4>
+            <p><i class="fa-solid fa-phone" style="color:#b07a2a"></i> +250791375079</p>
+            <p><i class="fa-solid fa-envelope" style="color:#b07a2a"></i> info@grandhaven.com</p>
+            <p><i class="fa-solid fa-location-dot" style="color:#b07a2a"></i> Kigali, Rwanda</p>
+        </div>
+        <div class="footer-col">
+            <h4>Quick Links</h4>
+            <p><a href="/Index">Home</a></p>
+            <p><a href="/Rooms">Our Rooms</a></p>
+            <p><a href="/Events">Events</a></p>
+            <p><a href="/Contact">Contact</a></p>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        <p>&copy; 2026 Grand Haven Hotel. All rights reserved.</p>
+    </div>
+</footer>

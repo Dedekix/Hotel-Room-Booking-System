@@ -33,40 +33,13 @@
                             <span><i class="fa-solid fa-tag"></i> Free</span>
                         }
                     </div>
-                    <button class="btn-reserve" onclick="openModal(@ev.EventId, '@ev.Title', '@ev.EventDate')">Reserve a Spot</button>
+                    <a href="/BookEvent/@ev.EventId" class="btn-reserve">Reserve a Spot</a>
                 </div>
             </div>
         }
     </div>
 </div>
 
-<!-- RESERVATION MODAL -->
-<div class="modal-backdrop" id="reserveModal">
-    <div class="modal-box">
-        <button class="modal-close" onclick="closeModal()">&times;</button>
-        <h2>Reserve a Spot</h2>
-        <p class="modal-event-name"><i class="fa-regular fa-calendar"></i> <span id="modalEventName"></span> &mdash; <span id="modalEventDate"></span></p>
-        <form id="reserveForm">
-            <input type="hidden" name="eventName" id="hiddenEventName" />
-            <div class="form-group">
-                <label>Full Name</label>
-                <input type="text" name="fullName" placeholder="" required />
-            </div>
-            <div class="form-group">
-                <label>Email</label>
-                <input type="email" name="email" placeholder="" required />
-            </div>
-            <div class="form-group">
-                <label>Phone</label>
-                <input type="tel" name="phone" placeholder="" />
-            </div>
-            <button type="submit" class="btn-confirm-reserve">Confirm Reservation</button>
-        </form>
-        <div class="reserve-success" id="reserveSuccess" style="display:none">
-            <i class="fa-solid fa-circle-check"></i> Your spot has been reserved!
-        </div>
-    </div>
-</div>
 
 <!-- FOOTER -->
 <footer class="events-footer">
@@ -94,33 +67,4 @@
     </div>
 </footer>
 
-@section Scripts {
-<script>
-    var isLoggedIn = @(HttpContext.Session.GetString("UserId") != null ? "true" : "false");
 
-    function openModal(eventId, name, date) {
-        if (!isLoggedIn) {
-            window.location.href = '/Login';
-            return;
-        }
-        document.getElementById('modalEventName').textContent = name;
-        document.getElementById('modalEventDate').textContent = date;
-        document.getElementById('hiddenEventId').value        = eventId;
-        document.getElementById('reserveModal').classList.add('open');
-    }
-    function closeModal() {
-        document.getElementById('reserveModal').classList.remove('open');
-    }
-    document.getElementById('reserveModal').addEventListener('click', function (e) {
-        if (e.target === this) closeModal();
-    });
-
-    @if (Model.Reserved || !string.IsNullOrEmpty(Model.ErrorMessage)) {
-        <text>
-        window.addEventListener('DOMContentLoaded', () => {
-            document.getElementById('reserveModal').classList.add('open');
-        });
-        </text>
-    }
-</script>
-}
