@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Data.SqlClient;
 
-namespace HotelBookingSystem.Pages.Admin
+namespace HotelBookingSystem.Pages.Staff
 {
     public class MessageItem
     {
@@ -24,15 +24,13 @@ namespace HotelBookingSystem.Pages.Admin
 
         public void OnGet()
         {
-            var role = HttpContext.Session.GetString("UserRole");
-            if (role != "ADMIN") { Response.Redirect("/Login"); return; }
+            if (HttpContext.Session.GetString("UserRole") != "ADMIN") { Response.Redirect("/Login"); return; }
             LoadMessages();
         }
 
         public IActionResult OnPost(int messageId)
         {
-            var role = HttpContext.Session.GetString("UserRole");
-            if (role != "ADMIN") return RedirectToPage("/Login");
+            if (HttpContext.Session.GetString("UserRole") != "ADMIN") return RedirectToPage("/Login");
 
             using var conn = new SqlConnection(_conn);
             conn.Open();

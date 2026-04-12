@@ -78,7 +78,7 @@ namespace HotelBookingSystem.Pages
             }
 
             if (role == "ADMIN")
-                return Redirect(!string.IsNullOrEmpty(ReturnUrl) ? ReturnUrl : "/Admin/Dashboard");
+                return Redirect(!string.IsNullOrEmpty(ReturnUrl) ? ReturnUrl : "/Staff/Dashboard");
             if (role == "STAFF")
                 return Redirect(!string.IsNullOrEmpty(ReturnUrl) ? ReturnUrl : "/Staff/Dashboard");
             return RedirectToPage("/Index");
