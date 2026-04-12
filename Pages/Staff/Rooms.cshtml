@@ -45,7 +45,7 @@
                 </button>
                 <form method="post" asp-page-handler="Toggle" style="margin:0">
                     <input type="hidden" name="roomId" value="@room.RoomId" />
-                    <button type="submit" class="btn-key" title="@(room.IsAvailable ? "Set Unavailable" : "Set Available")">
+                    <button type="submit" class="btn-key" title="@(room.IsAvailable ? "under Maintainence" : "Set Available")">
                         <i class="fa-solid fa-key"></i>
                     </button>
                 </form>
