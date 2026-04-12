@@ -60,7 +60,7 @@ namespace HotelBookingSystem.Pages.Staff
 
             string sql = @"
                 SELECT b.bookingId, u.fullName, r.roomNumber,
-                       b.checkInDate, b.checkOutDate, b.totalAmount, b.status
+                       b.checkInDate, b.checkOutDate, b.totalPrice, b.status
                 FROM Bookings b
                 JOIN Users u ON b.userId = u.userId
                 JOIN Rooms r ON b.roomId = r.roomId
@@ -77,7 +77,7 @@ namespace HotelBookingSystem.Pages.Staff
                     RoomNumber  = reader["roomNumber"].ToString()!,
                     CheckIn     = (DateTime)reader["checkInDate"],
                     CheckOut    = (DateTime)reader["checkOutDate"],
-                    TotalAmount = (decimal)reader["totalAmount"],
+                    TotalAmount = (decimal)reader["totalPrice"],
                     Status      = reader["status"].ToString()!
                 });
             }
