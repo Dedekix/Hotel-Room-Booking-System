@@ -45,7 +45,10 @@
                 {
                     <a href="/Login" class="login-link"><i class="fa-regular fa-user"></i> Login</a>
                 }
-                <a href="@_portalHref" class="staff-portal-link">Personnel Portal</a>
+                @if (_role == "STAFF" || _role == "ADMIN" || string.IsNullOrEmpty(_role))
+                {
+                    <a href="@_portalHref" class="staff-portal-link">Personnel Portal</a>
+                }
                 @if (_role == "ADMIN")
                 {
                     <a href="/Admin/Dashboard" class="staff-portal-link" style="background:#b07a2a">Admin Panel</a>
