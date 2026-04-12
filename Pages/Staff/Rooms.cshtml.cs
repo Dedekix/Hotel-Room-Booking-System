@@ -138,7 +138,7 @@ namespace HotelBookingSystem.Pages.Staff
                 SELECT r.roomId, r.roomNumber, r.type, r.pricePerNight, r.capacity,
                        r.isAvailable, r.description,
                        (SELECT COUNT(*) FROM Bookings b
-                        WHERE b.roomId = r.roomId AND b.status = 'CHECKED_IN') AS occupiedCount
+                        WHERE b.roomId = r.roomId AND b.status IN ('CONFIRMED','CHECKED_IN')) AS occupiedCount
                 FROM Rooms r
                 ORDER BY r.roomNumber";
 
@@ -149,8 +149,8 @@ namespace HotelBookingSystem.Pages.Staff
                 bool isAvailable  = (bool)reader["isAvailable"];
                 int  occupiedCount = (int)reader["occupiedCount"];
 
-                string status = isAvailable ? "Available"
-                              : occupiedCount > 0 ? "Occupied"
+                string status = occupiedCount > 0 ? "Occupied"
+                              : isAvailable       ? "Available"
                               : "Maintenance";
 
                 Rooms.Add(new RoomItem
