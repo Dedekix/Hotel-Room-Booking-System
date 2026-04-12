@@ -33,6 +33,13 @@
                     {
                         <div class="room-overlay">
                             <span class="overlay-status">@room.DisplayStatus.ToUpper()</span>
+                            @if (room.AvailableFrom.HasValue)
+                            {
+                                <span class="overlay-available">
+                                    <i class="fa-regular fa-calendar"></i>
+                                    Available @room.AvailableFrom.Value.ToString("MMM d, yyyy")
+                                </span>
+                            }
                         </div>
                     }
                 </div>

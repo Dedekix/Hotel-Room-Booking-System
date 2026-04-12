@@ -12,8 +12,9 @@ namespace HotelBookingSystem.Pages
         public int     Capacity      { get; set; }
         public bool    IsAvailable   { get; set; }
         public string  Description   { get; set; } = "";
-        public string  DisplayStatus { get; set; } = "";
-        public string  ImagePath     { get; set; } = "";
+        public string    DisplayStatus { get; set; } = "";
+        public string    ImagePath     { get; set; } = "";
+        public DateTime? AvailableFrom { get; set; }
     }
 
     public class RoomsModel : PageModel
@@ -32,7 +33,9 @@ namespace HotelBookingSystem.Pages
                 SELECT r.roomId, r.roomNumber, r.type, r.pricePerNight, r.capacity,
                        r.isAvailable, r.description,
                        (SELECT COUNT(*) FROM Bookings b
-                        WHERE b.roomId = r.roomId AND b.status = 'CHECKED_IN') AS occupiedCount
+                        WHERE b.roomId = r.roomId AND b.status IN ('CONFIRMED','CHECKED_IN')) AS occupiedCount,
+                       (SELECT MIN(b.checkOutDate) FROM Bookings b
+                        WHERE b.roomId = r.roomId AND b.status IN ('CONFIRMED','CHECKED_IN')) AS availableFrom
                 FROM Rooms r
                 ORDER BY r.roomNumber";
 
@@ -44,9 +47,11 @@ namespace HotelBookingSystem.Pages
                 bool isAvailable   = (bool)reader["isAvailable"];
                 int  occupiedCount = (int)reader["occupiedCount"];
                 string type        = reader["type"].ToString()!;
+                DateTime? availableFrom = reader["availableFrom"] == DBNull.Value
+                    ? null : (DateTime?)reader["availableFrom"];
 
-                string status = isAvailable    ? "Available"
-                              : occupiedCount > 0 ? "Occupied"
+                string status = occupiedCount > 0 ? "Occupied"
+                              : isAvailable       ? "Available"
                               : "Maintenance";
 
                 // Map a default image per type
@@ -67,7 +72,8 @@ namespace HotelBookingSystem.Pages
                     IsAvailable   = isAvailable,
                     Description   = reader["description"]?.ToString() ?? "",
                     DisplayStatus = status,
-                    ImagePath     = img
+                    ImagePath     = img,
+                    AvailableFrom = availableFrom
                 });
             }
         }
