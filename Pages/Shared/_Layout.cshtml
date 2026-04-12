@@ -27,15 +27,26 @@
             </div>
 
             <div class="nav-right">
-                <a href="/Login" class="login-link"><i class="fa-regular fa-user"></i> Login</a>
 @{
+                    var _loggedInName = Context.Session.GetString("UserFullName");
                     var _role = Context.Session.GetString("UserRole");
                     var _portalHref = (_role == "STAFF" || _role == "ADMIN")
                         ? "/Staff/Dashboard"
                         : "/Login?returnUrl=/Staff/Dashboard";
                 }
+                @if (!string.IsNullOrEmpty(_loggedInName))
+                {
+                    <span class="user-greeting">
+                        <i class="fa-solid fa-circle-user"></i> @_loggedInName
+                    </span>
+                    <a href="/Logout" class="login-link">Logout</a>
+                }
+                else
+                {
+                    <a href="/Login" class="login-link"><i class="fa-regular fa-user"></i> Login</a>
+                }
                 <a href="@_portalHref" class="staff-portal-link">Personnel Portal</a>
-                @if (Context.Session.GetString("UserRole") == "ADMIN")
+                @if (_role == "ADMIN")
                 {
                     <a href="/Admin/Dashboard" class="staff-portal-link" style="background:#b07a2a">Admin Panel</a>
                 }

@@ -49,6 +49,15 @@ h1, h2, h3 {
     color: #333;
 }
 
+.user-greeting {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #b07a2a;
+}
+
 .staff-btn {
     background: #b07a2a;
     color: white;
