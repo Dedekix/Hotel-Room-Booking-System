@@ -59,6 +59,7 @@ namespace HotelBookingSystem.Pages
                 {
                     "SUITE"  => "Images/room301.jpg",
                     "DELUXE" => "Images/room201.jpg",
+                    "SINGLE" => "Images/Single room.jpg",
                     _        => "Images/room101.jpg"
                 };
 
