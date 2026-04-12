@@ -1,0 +1,92 @@
+@page
+@model HotelBookingSystem.Pages.MyBookingsModel
+@{
+    ViewData["Title"] = "My Bookings";
+}
+<link rel="stylesheet" href="~/css/MyBookings.css" />
+
+<div class="mybookings-page">
+
+    <h1 class="mybookings-title">My Bookings</h1>
+
+    <!-- ROOM BOOKINGS -->
+    <h2 class="section-heading"><i class="fa-solid fa-bed"></i> Room Bookings</h2>
+
+    @if (!Model.RoomBookings.Any())
+    {
+        <p class="empty-msg">You have no room bookings yet. <a href="/Rooms">Browse rooms</a></p>
+    }
+    else
+    {
+        <div class="table-wrap">
+            <table class="my-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Room</th>
+                        <th>Type</th>
+                        <th>Check-in</th>
+                        <th>Check-out</th>
+                        <th>Guests</th>
+                        <th>Total</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var b in Model.RoomBookings)
+                    {
+                        <tr>
+                            <td class="id-cell">#@b.BookingId</td>
+                            <td><strong>Room @b.RoomNumber</strong></td>
+                            <td>@b.RoomType</td>
+                            <td>@b.CheckIn.ToString("MMM d, yyyy")</td>
+                            <td>@b.CheckOut.ToString("MMM d, yyyy")</td>
+                            <td>@b.GuestCount</td>
+                            <td class="price-cell">$@b.TotalPrice.ToString("0.00")</td>
+                            <td><span class="status-badge status-@b.Status.ToLower().Replace("_","-")">@b.Status.Replace("_", " ")</span></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+
+    <!-- EVENT RESERVATIONS -->
+    <h2 class="section-heading" style="margin-top:48px"><i class="fa-solid fa-calendar-star"></i> Event Reservations</h2>
+
+    @if (!Model.EventReservations.Any())
+    {
+        <p class="empty-msg">You have no event reservations yet. <a href="/Events">Browse events</a></p>
+    }
+    else
+    {
+        <div class="table-wrap">
+            <table class="my-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Event</th>
+                        <th>Date</th>
+                        <th>Location</th>
+                        <th>Price</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var e in Model.EventReservations)
+                    {
+                        <tr>
+                            <td class="id-cell">#@e.EventBookingId</td>
+                            <td><strong>@e.EventTitle</strong></td>
+                            <td>@e.EventDate.ToString("MMM d, yyyy h:mm tt")</td>
+                            <td>@e.Location</td>
+                            <td>@(e.Price == 0 ? "Free" : "$" + e.Price.ToString("0.00"))</td>
+                            <td><span class="status-badge status-@e.Status.ToLower()">@e.Status</span></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+
+</div>

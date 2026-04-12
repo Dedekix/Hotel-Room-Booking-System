@@ -39,6 +39,10 @@
                     <span class="user-greeting">
                         <i class="fa-solid fa-circle-user"></i> @_loggedInName
                     </span>
+                    @if (_role != "STAFF" && _role != "ADMIN")
+                    {
+                        <a href="/MyBookings" class="login-link">My Bookings</a>
+                    }
                     <a href="/Logout" class="login-link">Logout</a>
                 }
                 else

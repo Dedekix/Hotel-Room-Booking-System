@@ -37,7 +37,7 @@ namespace HotelBookingSystem.Pages.Staff
 
         public IActionResult OnPostCheckOut(int bookingId)
         {
-            UpdateStatus(bookingId, "COMPLETED");
+            UpdateStatus(bookingId, "CHECKED_OUT");
             return RedirectToPage();
         }
 

@@ -21,18 +21,21 @@ namespace HotelBookingSystem.Pages
         public string? ErrorMessage   { get; set; }
         public string? SuccessMessage { get; set; }
 
+        public string LoggedInName { get; set; } = "";
+
         public IActionResult OnGet(int roomId)
         {
+            if (string.IsNullOrEmpty(HttpContext.Session.GetString("UserId")))
+                return Redirect($"/Login?returnUrl=/BookRoom/{roomId}");
             if (!LoadRoom(roomId))
                 return RedirectToPage("/Rooms");
+            LoggedInName = HttpContext.Session.GetString("UserFullName") ?? "";
             return Page();
         }
 
         public IActionResult OnPost(
             int    roomId,
             string bookingType,
-            string fullName,
-            string email,
             string? checkInDate,
             string? checkOutDate,
             string? checkInTime,
@@ -42,14 +45,11 @@ namespace HotelBookingSystem.Pages
             int?   durationHours,
             int    guestCount)
         {
-            LoadRoom(roomId);
+            if (string.IsNullOrEmpty(HttpContext.Session.GetString("UserId")))
+                return Redirect($"/Login?returnUrl=/BookRoom/{roomId}");
 
-            // ── Validate ──────────────────────────────────────
-            if (string.IsNullOrWhiteSpace(fullName) || string.IsNullOrWhiteSpace(email))
-            {
-                ErrorMessage = "Full name and email are required.";
-                return Page();
-            }
+            LoadRoom(roomId);
+            LoggedInName = HttpContext.Session.GetString("UserFullName") ?? "";
 
             if (guestCount < 1 || guestCount > Capacity)
             {
@@ -57,23 +57,10 @@ namespace HotelBookingSystem.Pages
                 return Page();
             }
 
+            int userId = int.Parse(HttpContext.Session.GetString("UserId")!);
+
             using var conn = new SqlConnection(_conn);
             conn.Open();
-
-            // ── Resolve userId from email ─────────────────────
-            int userId;
-            using (var cmd = new SqlCommand(
-                "SELECT userId FROM Users WHERE email = @e AND isActive = 1", conn))
-            {
-                cmd.Parameters.AddWithValue("@e", email);
-                var result = cmd.ExecuteScalar();
-                if (result == null)
-                {
-                    ErrorMessage = "No active account found for that email. Please sign up first.";
-                    return Page();
-                }
-                userId = (int)result;
-            }
 
             // ── Calculate dates & price ───────────────────────
             DateTime checkIn, checkOut;
