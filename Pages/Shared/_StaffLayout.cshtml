@@ -30,7 +30,10 @@
                     <i class="fa-solid fa-bed"></i> Rooms
                 </a>
                 <a href="/Staff/Events" class="nav-item @(ViewData["ActivePage"]?.ToString() == "Events" ? "active" : "")">
-                    <i class="fa-solid fa-calendar-star"></i> Events
+                    <span class="fa-stack" style="width:18px;height:18px;line-height:18px;font-size:9px;">
+                        <i class="fa-solid fa-calendar fa-stack-2x"></i>
+                        <i class="fa-solid fa-star fa-stack-1x" style="color:#b07a2a;margin-top:3px;"></i>
+                    </span> Events
                 </a>
                 <a href="/Staff/Reports" class="nav-item @(ViewData["ActivePage"]?.ToString() == "Reports" ? "active" : "")">
                     <i class="fa-solid fa-chart-bar"></i> Reports
