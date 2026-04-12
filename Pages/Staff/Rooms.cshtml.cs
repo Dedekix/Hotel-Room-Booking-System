@@ -27,6 +27,8 @@ namespace HotelBookingSystem.Pages.Staff
 
         public void OnGet()
         {
+            var role = HttpContext.Session.GetString("UserRole");
+            if (role != "ADMIN") { Response.Redirect("/Login?returnUrl=/Staff/Rooms"); return; }
             LoadRooms();
         }
 

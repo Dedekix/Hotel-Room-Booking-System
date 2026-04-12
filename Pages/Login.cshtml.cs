@@ -18,6 +18,9 @@ namespace HotelBookingSystem.Pages
 
         public string? ErrorMessage { get; set; }
 
+        [BindProperty(SupportsGet = true)]
+        public string? ReturnUrl { get; set; }
+
         public void OnGet() { }
 
         public IActionResult OnPost()
@@ -74,7 +77,11 @@ namespace HotelBookingSystem.Pages
                 return Page();
             }
 
-            return role == "ADMIN" ? RedirectToPage("/Admin/Dashboard") : RedirectToPage("/Index");
+            if (role == "ADMIN")
+                return Redirect(!string.IsNullOrEmpty(ReturnUrl) ? ReturnUrl : "/Admin/Dashboard");
+            if (role == "STAFF")
+                return Redirect(!string.IsNullOrEmpty(ReturnUrl) ? ReturnUrl : "/Staff/Dashboard");
+            return RedirectToPage("/Index");
         }
     }
 }

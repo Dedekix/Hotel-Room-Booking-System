@@ -22,7 +22,12 @@ namespace HotelBookingSystem.Pages.Staff
 
         public List<BookingItem> Bookings { get; set; } = new();
 
-        public void OnGet() => LoadBookings();
+        public void OnGet()
+        {
+            var role = HttpContext.Session.GetString("UserRole");
+            if (role != "STAFF" && role != "ADMIN") { Response.Redirect("/Login?returnUrl=/Staff/Bookings"); return; }
+            LoadBookings();
+        }
 
         public IActionResult OnPostCheckIn(int bookingId)
         {

@@ -28,7 +28,13 @@
 
             <div class="nav-right">
                 <a href="/Login" class="login-link"><i class="fa-regular fa-user"></i> Login</a>
-                <a href="/Staff/Dashboard" class="staff-portal-link">Personnel Portal</a>
+@{
+                    var _role = Context.Session.GetString("UserRole");
+                    var _portalHref = (_role == "STAFF" || _role == "ADMIN")
+                        ? "/Staff/Dashboard"
+                        : "/Login?returnUrl=/Staff/Dashboard";
+                }
+                <a href="@_portalHref" class="staff-portal-link">Personnel Portal</a>
                 @if (Context.Session.GetString("UserRole") == "ADMIN")
                 {
                     <a href="/Admin/Dashboard" class="staff-portal-link" style="background:#b07a2a">Admin Panel</a>

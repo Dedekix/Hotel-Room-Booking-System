@@ -10,6 +10,15 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 </head>
 <body class="staff-body">
+@{
+    var userRole = Context.Session.GetString("UserRole");
+    if (userRole != "STAFF" && userRole != "ADMIN")
+    {
+        Context.Response.Redirect("/Login?returnUrl=/Staff/Dashboard");
+        return;
+    }
+    bool isAdmin = userRole == "ADMIN";
+}
 
     <div class="staff-wrapper">
         <!-- Sidebar -->
@@ -26,6 +35,8 @@
                 <a href="/Staff/Bookings" class="nav-item @(ViewData["ActivePage"]?.ToString() == "Bookings" ? "active" : "")">
                     <i class="fa-regular fa-calendar"></i> Bookings
                 </a>
+                @if (isAdmin)
+                {
                 <a href="/Staff/Rooms" class="nav-item @(ViewData["ActivePage"]?.ToString() == "Rooms" ? "active" : "")">
                     <i class="fa-solid fa-bed"></i> Rooms
                 </a>
@@ -38,6 +49,7 @@
                 <a href="/Staff/Reports" class="nav-item @(ViewData["ActivePage"]?.ToString() == "Reports" ? "active" : "")">
                     <i class="fa-solid fa-chart-bar"></i> Reports
                 </a>
+                }
             </nav>
 
             <a href="/Index" class="sidebar-exit">
