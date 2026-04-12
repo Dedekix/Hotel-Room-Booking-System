@@ -140,10 +140,18 @@ namespace HotelBookingSystem.Pages
             SpotsLeft        = Capacity - (int)reader["booked"];
             ImagePath        = title.ToLower() switch
             {
-                var t when t.Contains("talent")  => "Images/talent.jpg",
-                var t when t.Contains("culture") => "Images/culture.jpg",
-                var t when t.Contains("spa")     => "Images/event-spa.jpg",
-                _                                => "Images/event-gala.jpg"
+                var t when t.Contains("talent")   => "Images/talent.jpg",
+                var t when t.Contains("culture")  => "Images/culture.jpg",
+                var t when t.Contains("spa")      => "Images/event-spa.jpg",
+                var t when t.Contains("gala")     => "Images/event-gala.jpg",
+                var t when t.Contains("comedy")   => "Images/Comedy.jpg",
+                var t when t.Contains("jazz")     => "Images/Live jazz.jpg",
+                var t when t.Contains("brunch")   => "Images/Brunch.jpg",
+                var t when t.Contains("mixology") => "Images/Mixology.jpg",
+                var t when t.Contains("wine")     => "Images/Wine tasting.jpg",
+                var t when t.Contains("cinema")   => "Images/Rootop cinema.png",
+                var t when t.Contains("rooftop")  => "Images/Rootop cinema.png",
+                _                                 => "Images/event-gala.jpg"
             };
             return true;
         }
