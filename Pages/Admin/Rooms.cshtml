@@ -15,45 +15,33 @@
     <div class="staff-alert @(Model.IsError ? "staff-alert-error" : "staff-alert-success")">@Model.Message</div>
 }
 
-<table class="bookings-table">
-    <thead>
-        <tr>
-            <th>Room</th>
-            <th>Type</th>
-            <th>Price/Night</th>
-            <th>Capacity</th>
-            <th>Status</th>
-            <th>Action</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var room in Model.Rooms)
-        {
-            <tr>
-                <td><span class="guest-name">Room @room.RoomNumber</span></td>
-                <td>@room.Type</td>
-                <td class="total-amount">$@room.PricePerNight.ToString("0.##")</td>
-                <td>@room.Capacity</td>
-                <td>
-                    @if (room.IsAvailable)
-                    {
-                        <span class="badge-available">Available</span>
-                    }
-                    else
-                    {
-                        <span class="badge-occupied">Unavailable</span>
-                    }
-                </td>
-                <td>
-                    <form method="post" style="display:inline">
-                        <input type="hidden" name="roomId"      value="@room.RoomId" />
-                        <input type="hidden" name="isAvailable" value="@(!room.IsAvailable)" />
-                        <button type="submit" class="action-link">
-                            @(room.IsAvailable ? "Mark Unavailable" : "Mark Available")
-                        </button>
-                    </form>
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
+<div class="rooms-mgmt-grid">
+    @foreach (var room in Model.Rooms)
+    {
+        string badgeClass = room.IsOccupied  ? "badge-occupied"
+                          : room.IsAvailable ? "badge-available"
+                          : "badge-maintenance";
+        string badgeText  = room.IsOccupied  ? "Occupied"
+                          : room.IsAvailable ? "Available"
+                          : "Maintenance";
+
+        <div class="room-mgmt-card">
+            <div class="room-mgmt-top">
+                <span class="room-mgmt-name">Room @room.RoomNumber</span>
+                <span class="@badgeClass">@badgeText</span>
+            </div>
+            <div class="room-mgmt-sub">@room.Type &middot; Max @room.Capacity Guests</div>
+            <div class="room-mgmt-price">$@room.PricePerNight.ToString("0.##")/night</div>
+            <div class="room-mgmt-actions">
+                <form method="post" style="flex:1">
+                    <input type="hidden" name="roomId"      value="@room.RoomId" />
+                    <input type="hidden" name="isAvailable" value="@(!room.IsAvailable)" />
+                    <button type="submit" class="btn-edit" style="width:100%">
+                        @(room.IsAvailable ? "Mark Unavailable" : "Mark Available")
+                    </button>
+                </form>
+                <button class="btn-key"><i class="fa-solid fa-screwdriver-wrench"></i></button>
+            </div>
+        </div>
+    }
+</div>

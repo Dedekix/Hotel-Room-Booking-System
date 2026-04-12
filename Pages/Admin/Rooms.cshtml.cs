@@ -12,6 +12,7 @@ namespace HotelBookingSystem.Pages.Admin
         public decimal PricePerNight { get; set; }
         public int     Capacity      { get; set; }
         public bool    IsAvailable   { get; set; }
+        public bool    IsOccupied    { get; set; }
     }
 
     public class RoomsModel : PageModel
@@ -49,7 +50,11 @@ namespace HotelBookingSystem.Pages.Admin
         {
             using var conn = new SqlConnection(_conn);
             conn.Open();
-            using var cmd    = new SqlCommand("SELECT roomId, roomNumber, type, pricePerNight, capacity, isAvailable FROM Rooms ORDER BY roomNumber", conn);
+            string sql = @"SELECT r.roomId, r.roomNumber, r.type, r.pricePerNight, r.capacity, r.isAvailable,
+                       (SELECT COUNT(*) FROM Bookings b WHERE b.roomId = r.roomId
+                        AND b.status IN ('CONFIRMED','CHECKED_IN')) AS occupiedCount
+                FROM Rooms r ORDER BY r.roomNumber";
+            using var cmd    = new SqlCommand(sql, conn);
             using var reader = cmd.ExecuteReader();
             while (reader.Read())
                 Rooms.Add(new RoomItem
@@ -59,7 +64,8 @@ namespace HotelBookingSystem.Pages.Admin
                     Type          = reader["type"].ToString()!,
                     PricePerNight = (decimal)reader["pricePerNight"],
                     Capacity      = (int)reader["capacity"],
-                    IsAvailable   = (bool)reader["isAvailable"]
+                    IsAvailable   = (bool)reader["isAvailable"],
+                    IsOccupied    = (int)reader["occupiedCount"] > 0
                 });
         }
 
