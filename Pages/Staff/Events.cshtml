@@ -1,0 +1,170 @@
+@page
+@model HotelBookingSystem.Pages.Staff.EventsModel
+@{
+    Layout = "_StaffLayout";
+    ViewData["Title"] = "Events";
+    ViewData["ActivePage"] = "Events";
+}
+
+<div class="rooms-mgmt-header">
+    <h1 class="staff-page-title" style="margin-bottom:0">Event Management</h1>
+    <button class="btn-add-room" onclick="openAddModal()">
+        <i class="fa-solid fa-plus"></i> Add Event
+    </button>
+</div>
+
+@if (!string.IsNullOrEmpty(Model.ErrorMessage))
+{
+    <div class="staff-alert staff-alert-error">@Model.ErrorMessage</div>
+}
+@if (!string.IsNullOrEmpty(Model.SuccessMessage))
+{
+    <div class="staff-alert staff-alert-success">@Model.SuccessMessage</div>
+}
+
+<div class="rooms-mgmt-grid">
+    @foreach (var ev in Model.Events)
+    {
+        <div class="room-mgmt-card">
+            <div class="room-mgmt-top">
+                <span class="room-mgmt-name">@ev.Title</span>
+                <span class="badge-available">@ev.BookingCount booked</span>
+            </div>
+            <div class="room-mgmt-sub">@ev.Location · @ev.EventDate.ToString("MMM d, yyyy h:mm tt")</div>
+            <div class="room-mgmt-price">@(ev.Price == 0 ? "Free" : "$" + ev.Price.ToString("0.##"))</div>
+            <div class="room-mgmt-sub" style="margin-bottom:14px">Capacity: @ev.Capacity</div>
+            <div class="room-mgmt-actions">
+                <button class="btn-edit" onclick="openEditModal(@ev.EventId, '@Html.Raw(ev.Title.Replace("'", "\\'"))', '@Html.Raw(ev.Description.Replace("'", "\\'"))', '@ev.EventDate.ToString("yyyy-MM-ddTHH:mm")', '@Html.Raw(ev.Location.Replace("'", "\\'"))', @ev.Capacity, @ev.Price)">
+                    Edit
+                </button>
+                <form method="post" asp-page-handler="Delete" style="margin:0"
+                      onsubmit="return confirm('Delete this event?')">
+                    <input type="hidden" name="eventId" value="@ev.EventId" />
+                    <button type="submit" class="btn-key" title="Delete Event">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- ── Add Event Modal ── -->
+<div class="modal-backdrop" id="addModal" style="display:none">
+    <div class="modal-card">
+        <div class="modal-header">
+            <h3>Add New Event</h3>
+            <button class="modal-close" onclick="closeModal('addModal')">&times;</button>
+        </div>
+        <form method="post" asp-page-handler="Add">
+            <div class="modal-body">
+                <div class="mform-group">
+                    <label>Title</label>
+                    <input type="text" name="title" placeholder="Event title" required />
+                </div>
+                <div class="form-row-modal">
+                    <div class="mform-group">
+                        <label>Date &amp; Time</label>
+                        <input type="datetime-local" name="eventDate" required />
+                    </div>
+                    <div class="mform-group">
+                        <label>Location</label>
+                        <input type="text" name="location" placeholder="e.g. Grand Hall" required />
+                    </div>
+                </div>
+                <div class="form-row-modal">
+                    <div class="mform-group">
+                        <label>Capacity</label>
+                        <input type="number" name="capacity" min="1" required />
+                    </div>
+                    <div class="mform-group">
+                        <label>Price ($)</label>
+                        <input type="number" name="price" min="0" step="0.01" value="0" required />
+                    </div>
+                </div>
+                <div class="mform-group">
+                    <label>Description</label>
+                    <textarea name="description" rows="2" placeholder="Optional description"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-modal-cancel" onclick="closeModal('addModal')">Cancel</button>
+                <button type="submit" class="btn-modal-confirm">Add Event</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ── Edit Event Modal ── -->
+<div class="modal-backdrop" id="editModal" style="display:none">
+    <div class="modal-card">
+        <div class="modal-header">
+            <h3>Edit Event</h3>
+            <button class="modal-close" onclick="closeModal('editModal')">&times;</button>
+        </div>
+        <form method="post" asp-page-handler="Edit">
+            <input type="hidden" name="eventId" id="editEventId" />
+            <div class="modal-body">
+                <div class="mform-group">
+                    <label>Title</label>
+                    <input type="text" name="title" id="editTitle" required />
+                </div>
+                <div class="form-row-modal">
+                    <div class="mform-group">
+                        <label>Date &amp; Time</label>
+                        <input type="datetime-local" name="eventDate" id="editDate" required />
+                    </div>
+                    <div class="mform-group">
+                        <label>Location</label>
+                        <input type="text" name="location" id="editLocation" required />
+                    </div>
+                </div>
+                <div class="form-row-modal">
+                    <div class="mform-group">
+                        <label>Capacity</label>
+                        <input type="number" name="capacity" id="editCapacity" min="1" required />
+                    </div>
+                    <div class="mform-group">
+                        <label>Price ($)</label>
+                        <input type="number" name="price" id="editPrice" min="0" step="0.01" required />
+                    </div>
+                </div>
+                <div class="mform-group">
+                    <label>Description</label>
+                    <textarea name="description" id="editDescription" rows="2"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-modal-cancel" onclick="closeModal('editModal')">Cancel</button>
+                <button type="submit" class="btn-modal-confirm">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    function openAddModal() {
+        document.getElementById('addModal').style.display = 'flex';
+    }
+
+    function openEditModal(id, title, desc, date, location, capacity, price) {
+        document.getElementById('editEventId').value    = id;
+        document.getElementById('editTitle').value      = title;
+        document.getElementById('editDescription').value = desc;
+        document.getElementById('editDate').value       = date;
+        document.getElementById('editLocation').value   = location;
+        document.getElementById('editCapacity').value   = capacity;
+        document.getElementById('editPrice').value      = price;
+        document.getElementById('editModal').style.display = 'flex';
+    }
+
+    function closeModal(id) {
+        document.getElementById(id).style.display = 'none';
+    }
+
+    document.querySelectorAll('.modal-backdrop').forEach(el => {
+        el.addEventListener('click', e => { if (e.target === el) closeModal(el.id); });
+    });
+</script>
+}
