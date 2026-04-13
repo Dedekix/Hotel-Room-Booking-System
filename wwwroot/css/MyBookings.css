@@ -85,3 +85,20 @@
 .status-checked-in   { color: #2e7d52; border-color: #2e7d52; background: transparent; }
 .status-checked-out  { color: #3b6ea8; border-color: #3b6ea8; background: transparent; }
 .status-cancelled    { color: #c0392b; border-color: #c0392b; background: transparent; }
+
+.btn-drop {
+    padding: 6px 16px;
+    background: none;
+    border: 1.5px solid #e57373;
+    color: #c62828;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+}
+
+.btn-drop:hover {
+    background: #c62828;
+    color: white;
+}

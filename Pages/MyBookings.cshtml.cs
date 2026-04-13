@@ -90,5 +90,21 @@ namespace HotelBookingSystem.Pages
 
             return Page();
         }
+
+        public IActionResult OnPostCancelEvent(int eventBookingId)
+        {
+            var userId = HttpContext.Session.GetString("UserId");
+            if (string.IsNullOrEmpty(userId)) return Redirect("/Login");
+
+            using var conn = new SqlConnection(_conn);
+            conn.Open();
+            using var cmd = new SqlCommand(
+                "UPDATE EventBookings SET status = 'CANCELLED' WHERE eventBookingId = @id AND userId = @uid", conn);
+            cmd.Parameters.AddWithValue("@id",  eventBookingId);
+            cmd.Parameters.AddWithValue("@uid", int.Parse(userId));
+            cmd.ExecuteNonQuery();
+
+            return RedirectToPage();
+        }
     }
 }

@@ -32,7 +32,11 @@
             </div>
             <div class="room-mgmt-sub">@ev.Location · @ev.EventDate.ToString("MMM d, yyyy h:mm tt")</div>
             <div class="room-mgmt-price">@(ev.Price == 0 ? "Free" : "$" + ev.Price.ToString("0.##"))</div>
-            <div class="room-mgmt-sub" style="margin-bottom:14px">Capacity: @ev.Capacity</div>
+            <div class="room-mgmt-sub" style="margin-bottom:14px">
+                Capacity: @ev.Capacity &nbsp;·&nbsp;
+                <span style="color:#2e7d52">@ev.AvailableSpots available</span> &nbsp;·&nbsp;
+                <span style="color:#c62828">@ev.CancelledCount dropped</span>
+            </div>
             <div class="room-mgmt-actions">
                 <button class="btn-edit" onclick="openEditModal(@ev.EventId, '@Html.Raw(ev.Title.Replace("'", "\\'"))', '@Html.Raw(ev.Description.Replace("'", "\\'"))', '@ev.EventDate.ToString("yyyy-MM-ddTHH:mm")', '@Html.Raw(ev.Location.Replace("'", "\\'"))', @ev.Capacity, @ev.Price)">
                     Edit
@@ -56,7 +60,7 @@
             <h3>Add New Event</h3>
             <button class="modal-close" onclick="closeModal('addModal')">&times;</button>
         </div>
-        <form method="post" asp-page-handler="Add">
+        <form method="post" asp-page-handler="Add" enctype="multipart/form-data">
             <div class="modal-body">
                 <div class="mform-group">
                     <label>Title</label>
@@ -85,6 +89,10 @@
                 <div class="mform-group">
                     <label>Description</label>
                     <textarea name="description" rows="2" placeholder="Optional description"></textarea>
+                </div>
+                <div class="mform-group">
+                    <label>Event Image</label>
+                    <input type="file" name="imageFile" accept="image/*" required />
                 </div>
             </div>
             <div class="modal-footer">

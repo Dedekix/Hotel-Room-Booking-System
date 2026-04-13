@@ -129,7 +129,7 @@ Users
 INSERT INTO Users (fullName, email, phone, role, isActive) VALUES
 ('Ariane',    'ariane@example.com',    '+250788394526', 'CUSTOMER', 1),
 ('Noah', 'noah@example.com',   '+250733661571', 'CUSTOMER', 1),
-('Christophe', 'christophe@example.com', '+250791302106', 'CUSTOMER', 1);
+('Christophe', 'christophe@example.com', '+250791302106', 'STAFF', 1);
 
 Bookings
 INSERT INTO Bookings (userId, roomId, checkInDate, checkOutDate, guestCount, totalPrice, status) VALUES

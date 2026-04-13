@@ -6,14 +6,16 @@ namespace HotelBookingSystem.Pages.Staff
 {
     public class EventItem
     {
-        public int EventId { get; set; }
-        public string Title { get; set; } = "";
-        public string Description { get; set; } = "";
-        public DateTime EventDate { get; set; }
-        public string Location { get; set; } = "";
-        public int Capacity { get; set; }
-        public decimal Price { get; set; }
-        public int BookingCount { get; set; }
+        public int     EventId       { get; set; }
+        public string  Title         { get; set; } = "";
+        public string  Description   { get; set; } = "";
+        public DateTime EventDate    { get; set; }
+        public string  Location      { get; set; } = "";
+        public int     Capacity      { get; set; }
+        public decimal Price         { get; set; }
+        public int     BookingCount  { get; set; }
+        public int     CancelledCount { get; set; }
+        public int     AvailableSpots => Capacity - BookingCount;
     }
 
     public class EventsModel : PageModel
@@ -33,7 +35,7 @@ namespace HotelBookingSystem.Pages.Staff
         }
 
         public IActionResult OnPostAdd(string title, string description, DateTime eventDate,
-            string location, int capacity, decimal price)
+            string location, int capacity, decimal price, IFormFile? imageFile)
         {
             if (string.IsNullOrWhiteSpace(title) || string.IsNullOrWhiteSpace(location))
             {
@@ -42,12 +44,23 @@ namespace HotelBookingSystem.Pages.Staff
                 return Page();
             }
 
+            // Handle image upload
+            string imagePath = "";
+            if (imageFile != null && imageFile.Length > 0)
+            {
+                var fileName = Path.GetFileName(imageFile.FileName);
+                var savePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Images", fileName);
+                using var stream = new FileStream(savePath, FileMode.Create, FileAccess.Write, FileShare.Read);
+                imageFile.CopyTo(stream);
+                imagePath = $"Images/{fileName}";
+            }
+
             var staffId = HttpContext.Session.GetString("UserId");
             using var conn = new SqlConnection(_conn);
             conn.Open();
 
-            string insert = @"INSERT INTO Events (title, description, eventDate, location, capacity, price, createdBy)
-                              VALUES (@title, @desc, @date, @loc, @cap, @price, @by)";
+            string insert = @"INSERT INTO Events (title, description, eventDate, location, capacity, price, createdBy, imagePath)
+                              VALUES (@title, @desc, @date, @loc, @cap, @price, @by, @img)";
             using var cmd = new SqlCommand(insert, conn);
             cmd.Parameters.AddWithValue("@title", title);
             cmd.Parameters.AddWithValue("@desc",  description ?? "");
@@ -56,6 +69,7 @@ namespace HotelBookingSystem.Pages.Staff
             cmd.Parameters.AddWithValue("@cap",   capacity);
             cmd.Parameters.AddWithValue("@price", price);
             cmd.Parameters.AddWithValue("@by",    int.Parse(staffId!));
+            cmd.Parameters.AddWithValue("@img",   imagePath);
             cmd.ExecuteNonQuery();
 
             SuccessMessage = $"Event \"{title}\" added successfully.";
@@ -116,7 +130,9 @@ namespace HotelBookingSystem.Pages.Staff
             string sql = @"
                 SELECT e.eventId, e.title, e.description, e.eventDate, e.location, e.capacity, e.price,
                        (SELECT COUNT(*) FROM EventBookings eb
-                        WHERE eb.eventId = e.eventId AND eb.status != 'CANCELLED') AS bookingCount
+                        WHERE eb.eventId = e.eventId AND eb.status != 'CANCELLED') AS bookingCount,
+                       (SELECT COUNT(*) FROM EventBookings eb
+                        WHERE eb.eventId = e.eventId AND eb.status = 'CANCELLED') AS cancelledCount
                 FROM Events e
                 ORDER BY e.eventDate";
 
@@ -133,7 +149,8 @@ namespace HotelBookingSystem.Pages.Staff
                     Location     = reader["location"].ToString()!,
                     Capacity     = (int)reader["capacity"],
                     Price        = (decimal)reader["price"],
-                    BookingCount = (int)reader["bookingCount"]
+                    BookingCount  = (int)reader["bookingCount"],
+                    CancelledCount = (int)reader["cancelledCount"]
                 });
             }
         }

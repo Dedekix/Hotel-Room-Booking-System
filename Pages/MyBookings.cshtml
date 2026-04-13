@@ -70,6 +70,7 @@
                         <th>Location</th>
                         <th>Price</th>
                         <th>Status</th>
+                        <th>Action</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -82,6 +83,16 @@
                             <td>@e.Location</td>
                             <td>@(e.Price == 0 ? "Free" : "$" + e.Price.ToString("0.00"))</td>
                             <td><span class="status-badge status-@e.Status.ToLower()">@e.Status</span></td>
+                            <td>
+                                @if (e.Status != "CANCELLED")
+                                {
+                                    <form method="post" asp-page-handler="CancelEvent">
+                                        <input type="hidden" name="eventBookingId" value="@e.EventBookingId" />
+                                        <button type="submit" class="btn-drop"
+                                            onclick="return confirm('Drop your reservation for @e.EventTitle?')">Drop</button>
+                                    </form>
+                                }
+                            </td>
                         </tr>
                     }
                 </tbody>

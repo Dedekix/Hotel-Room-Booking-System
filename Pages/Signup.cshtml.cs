@@ -65,7 +65,7 @@ namespace HotelBookingSystem.Pages
                     {
                         cmd.Parameters.AddWithValue("@FullName", FullName);
                         cmd.Parameters.AddWithValue("@Email", Email);
-                        cmd.Parameters.AddWithValue("@Role", Role);
+                        cmd.Parameters.AddWithValue("@Role", Role.ToUpper());
                         cmd.ExecuteNonQuery();
                     }
 

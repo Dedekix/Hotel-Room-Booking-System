@@ -2,57 +2,66 @@
 @model HotelBookingSystem.Pages.Staff.ReportsModel
 @{
     Layout = "_StaffLayout";
-    ViewData["Title"] = "Reports";
+    ViewData["Title"]      = "Reports";
     ViewData["ActivePage"] = "Reports";
 }
 
-<h1 class="staff-page-title">Reports</h1>
+<div class="bookings-header">
+    <h1 class="staff-page-title" style="margin-bottom:0">Reports</h1>
+    <div style="display:flex;gap:10px">
+        <form method="post" asp-page-handler="ExportExcel">
+            <button type="submit" class="btn-add-room" style="background:#1e7e4a">
+                <i class="fa-solid fa-file-excel"></i> Export Excel
+            </button>
+        </form>
+        <form method="post" asp-page-handler="ExportPdf">
+            <button type="submit" class="btn-add-room" style="background:#c0392b">
+                <i class="fa-solid fa-file-pdf"></i> Export PDF
+            </button>
+        </form>
+    </div>
+</div>
 
 <div class="reports-stats">
     <div class="stat-card">
         <div class="stat-card-top">
             <span class="stat-label">Total Revenue</span>
-            <div class="stat-icon orange"><i class="fa-solid fa-chart-bar"></i></div>
+            <div class="stat-icon orange"><i class="fa-solid fa-dollar-sign"></i></div>
         </div>
-        <div class="stat-value">$3,720</div>
+        <div class="stat-value">$@Model.TotalRevenue.ToString("N0")</div>
     </div>
     <div class="stat-card">
         <div class="stat-card-top">
             <span class="stat-label">Total Bookings</span>
             <div class="stat-icon blue"><i class="fa-regular fa-calendar"></i></div>
         </div>
-        <div class="stat-value">5</div>
+        <div class="stat-value">@Model.TotalBookings</div>
     </div>
     <div class="stat-card">
         <div class="stat-card-top">
             <span class="stat-label">Occupancy Rate</span>
             <div class="stat-icon green"><i class="fa-solid fa-bed"></i></div>
         </div>
-        <div class="stat-value">17%</div>
+        <div class="stat-value">@Model.OccupancyRate</div>
     </div>
 </div>
 
 <h2 class="section-title">Revenue by Room Type</h2>
 <div class="revenue-list">
-    <div class="revenue-item">
-        <div>
-            <div class="revenue-type">Standard</div>
-            <div class="revenue-count">2 bookings</div>
+    @foreach (var r in Model.RevenueByType)
+    {
+        <div class="revenue-item">
+            <div>
+                <div class="revenue-type">@r.RoomType</div>
+                <div class="revenue-count">@r.BookingCount booking@(r.BookingCount != 1 ? "s" : "")</div>
+            </div>
+            <div class="revenue-amount">$@r.Revenue.ToString("N2")</div>
         </div>
-        <div class="revenue-amount">$600</div>
-    </div>
-    <div class="revenue-item">
-        <div>
-            <div class="revenue-type">Deluxe</div>
-            <div class="revenue-count">2 bookings</div>
+    }
+    @if (!Model.RevenueByType.Any())
+    {
+        <div class="revenue-item">
+            <div class="revenue-type" style="color:#aaa">No booking data available.</div>
         </div>
-        <div class="revenue-amount">$1,320</div>
-    </div>
-    <div class="revenue-item">
-        <div>
-            <div class="revenue-type">Suite</div>
-            <div class="revenue-count">1 booking</div>
-        </div>
-        <div class="revenue-amount">$1,800</div>
-    </div>
+    }
 </div>

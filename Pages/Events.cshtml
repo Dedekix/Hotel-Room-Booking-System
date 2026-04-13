@@ -47,7 +47,6 @@
     <p class="events-no-results" id="noResults" style="display:none">No events match your search.</p>
 </div>
 
-
 <!-- FOOTER -->
 <footer class="events-footer">
     <div class="footer-inner">
@@ -65,7 +64,7 @@
             <h4>Quick Links</h4>
             <p><a href="/Index">Home</a></p>
             <p><a href="/Rooms">Our Rooms</a></p>
-			<p><a href="/Events">Events</a></p>
+            <p><a href="/Events">Events</a></p>
             <p><a href="/Contact">Contact</a></p>
         </div>
     </div>
@@ -75,17 +74,17 @@
 </footer>
 
 @section Scripts {
-<script>
-    function filterEvents() {
-        const q = document.getElementById('eventSearch').value.toLowerCase();
-        const cards = document.querySelectorAll('#eventsGrid .event-card');
-        let visible = 0;
-        cards.forEach(card => {
-            const match = card.dataset.title.includes(q);
-            card.style.display = match ? '' : 'none';
-            if (match) visible++;
-        });
-        document.getElementById('noResults').style.display = visible === 0 ? 'block' : 'none';
-    }
-</script>
+    <script>
+        function filterEvents() {
+            const q = document.getElementById('eventSearch').value.toLowerCase();
+            const cards = document.querySelectorAll('#eventsGrid .event-card');
+            let visible = 0;
+            cards.forEach(card => {
+                const match = card.dataset.title.includes(q);
+                card.style.display = match ? '' : 'none';
+                if (match) visible++;
+            });
+            document.getElementById('noResults').style.display = visible === 0 ? 'block' : 'none';
+        }
+    </script>
 }
