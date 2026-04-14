@@ -116,7 +116,7 @@ namespace HotelBookingSystem.Pages
         {
             using var conn = new SqlConnection(_conn);
             conn.Open();
-            string sql = "SELECT eventId, title, description, eventDate, location, capacity, price, imagePath FROM Events ORDER BY eventDate";
+            string sql = "SELECT eventId, title, description, eventDate, location, capacity, price FROM Events ORDER BY eventDate";
             using var cmd    = new SqlCommand(sql, conn);
             using var reader = cmd.ExecuteReader();
 
@@ -134,11 +134,26 @@ namespace HotelBookingSystem.Pages
                     Location    = reader["location"].ToString()!,
                     Capacity    = (int)reader["capacity"],
                     Price       = (decimal)reader["price"],
-                    ImagePath   = reader["imagePath"].ToString()!,
+                    ImagePath   = GetEventImage(title),
                     Badge       = date.ToString("MMMM")
                 });
             }
         }
+        private static string GetEventImage(string title) => title.ToLower() switch
+        {
+            var t when t.Contains("spa")      => "Images/event-spa.jpg",
+            var t when t.Contains("gala")     => "Images/event-gala.jpg",
+            var t when t.Contains("jazz")     => "Images/Live jazz.jpg",
+            var t when t.Contains("wine")     => "Images/Wine tasting.jpg",
+            var t when t.Contains("brunch")   => "Images/Brunch.jpg",
+            var t when t.Contains("comedy")   => "Images/Comedy.jpg",
+            var t when t.Contains("mixology") => "Images/Mixology.jpg",
+            var t when t.Contains("cinema")   => "Images/Rootop cinema.png",
+            var t when t.Contains("talent")   => "Images/talent.jpg",
+            var t when t.Contains("culture")  => "Images/culture.jpg",
+            _                                 => "Images/event-gala.jpg"
+        };
+
         private void LoadReservations()
         {
             var userId = HttpContext.Session.GetString("UserId");

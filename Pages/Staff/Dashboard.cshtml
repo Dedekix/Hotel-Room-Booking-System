@@ -14,41 +14,90 @@
             <span class="stat-label">Total Bookings</span>
             <div class="stat-icon blue"><i class="fa-regular fa-calendar"></i></div>
         </div>
-        <div class="stat-value">5</div>
+        <div class="stat-value">@Model.TotalBookings</div>
     </div>
     <div class="stat-card">
         <div class="stat-card-top">
-            <span class="stat-label">Today's Guests</span>
+            <span class="stat-label">Guests In-House</span>
             <div class="stat-icon green"><i class="fa-solid fa-bed"></i></div>
         </div>
-        <div class="stat-value">1</div>
+        <div class="stat-value">@Model.TodayCheckIns</div>
     </div>
     <div class="stat-card">
         <div class="stat-card-top">
-            <span class="stat-label">Revenue</span>
+            <span class="stat-label">Total Revenue</span>
             <div class="stat-icon orange"><i class="fa-solid fa-chart-bar"></i></div>
         </div>
-        <div class="stat-value">$3,720</div>
+        <div class="stat-value">$@Model.TotalRevenue.ToString("N0")</div>
     </div>
     <div class="stat-card">
         <div class="stat-card-top">
             <span class="stat-label">Occupancy</span>
             <div class="stat-icon yellow"><i class="fa-solid fa-table-cells"></i></div>
         </div>
-        <div class="stat-value">17%</div>
+        <div class="stat-value">@Model.OccupancyPercent%</div>
+        <div style="font-size:12px;color:#aaa;">@Model.TodayCheckIns / @Model.TotalRooms rooms</div>
     </div>
 </div>
 
-<h2 class="section-title">Today's Activity</h2>
-<div class="activity-list">
-    <div class="activity-item">
-        <div class="activity-left">
-            <i class="fa-solid fa-arrow-right-to-bracket activity-icon"></i>
-            <div>
-                <div class="activity-name">John Smith</div>
-                <div class="activity-sub">Room 202 · checked-in</div>
-            </div>
-        </div>
-        <button class="action-link">Check Out</button>
+@if (Model.PendingMessages > 0)
+{
+    <div class="staff-alert staff-alert-error" style="margin-bottom:28px;">
+        <i class="fa-solid fa-envelope" style="margin-right:8px;"></i>
+        You have <strong>@Model.PendingMessages</strong> unread contact message@(Model.PendingMessages > 1 ? "s" : "").
+        <a href="/Staff/Messages" style="color:inherit;font-weight:700;margin-left:6px;">View →</a>
     </div>
-</div>
+}
+
+<h2 class="section-title">Active &amp; Upcoming Guests</h2>
+
+@if (!Model.TodayActivity.Any())
+{
+    <div class="activity-list">
+        <div class="activity-item" style="justify-content:center;color:#aaa;font-size:14px;">
+            No active or upcoming bookings.
+        </div>
+    </div>
+}
+else
+{
+    <div class="activity-list">
+        @foreach (var item in Model.TodayActivity)
+        {
+            bool isCheckedIn = item.Status == "CHECKED_IN";
+            <div class="activity-item">
+                <div class="activity-left">
+                    <i class="fa-solid @(isCheckedIn ? "fa-arrow-right-to-bracket" : "fa-clock") activity-icon"
+                       style="color:@(isCheckedIn ? "#3bbf7a" : "#b07a2a")"></i>
+                    <div>
+                        <div class="activity-name">@item.GuestName</div>
+                        <div class="activity-sub">
+                            Room @item.RoomNumber &middot;
+                            @(isCheckedIn ? "Checked In" : "Arriving " + item.CheckIn.ToString("MMM d"))
+                            &middot; Check-out @item.CheckOut.ToString("MMM d")
+                        </div>
+                    </div>
+                </div>
+                <div style="display:flex;align-items:center;gap:12px;">
+                    <span class="badge-status @(isCheckedIn ? "badge-checkedin" : "badge-confirmed")">
+                        @(isCheckedIn ? "Checked In" : "Confirmed")
+                    </span>
+                    @if (isCheckedIn)
+                    {
+                        <form method="post" asp-page-handler="CheckOut" style="margin:0;">
+                            <input type="hidden" name="bookingId" value="@item.BookingId" />
+                            <button type="submit" class="action-link">Check Out</button>
+                        </form>
+                    }
+                    else
+                    {
+                        <form method="post" asp-page-handler="CheckIn" style="margin:0;">
+                            <input type="hidden" name="bookingId" value="@item.BookingId" />
+                            <button type="submit" class="action-link">Check In</button>
+                        </form>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+}
