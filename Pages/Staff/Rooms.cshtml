@@ -43,9 +43,11 @@
                 <button class="btn-edit" onclick="openEditModal(@room.RoomId, '@room.RoomNumber', '@room.Type', @room.PricePerNight, @room.Capacity, '@Html.Raw(room.Description.Replace("'", "\\'"))')">
                     Edit
                 </button>
-                <form method="post" asp-page-handler="Toggle" style="margin:0">
+                <form method="post" asp-page-handler="Toggle" style="margin:0" id="toggle-form-@room.RoomId">
                     <input type="hidden" name="roomId" value="@room.RoomId" />
-                    <button type="submit" class="btn-key" title="@(room.IsAvailable ? "under Maintainence" : "Set Available")">
+                    <button type="button" class="btn-key"
+                        title="@(room.IsAvailable ? "Set Under Maintenance" : "Set Available")"
+                        onclick="ghConfirm(event, 'Are you sure you want to set Room @room.RoomNumber to @(room.IsAvailable ? "Under Maintenance" : "Available")?', () => document.getElementById('toggle-form-@room.RoomId').submit())">
                         <i class="fa-solid fa-key"></i>
                     </button>
                 </form>

@@ -51,7 +51,7 @@
                                     <form method="post" asp-page-handler="CancelRoom">
                                         <input type="hidden" name="bookingId" value="@b.BookingId" />
                                         <button type="submit" class="btn-drop"
-                                            onclick="return confirm('Cancel your booking for Room @b.RoomNumber?')">Cancel</button>
+                                            onclick="ghConfirm(event, 'Are you sure you want to cancel your booking for Room @b.RoomNumber?', () => this.closest('form').submit())">Cancel</button>
                                     </form>
                                 }
                             </td>
@@ -100,7 +100,7 @@
                                     <form method="post" asp-page-handler="CancelEvent">
                                         <input type="hidden" name="eventBookingId" value="@e.EventBookingId" />
                                         <button type="submit" class="btn-drop"
-                                            onclick="return confirm('Drop your reservation for @e.EventTitle?')">Drop</button>
+                                            onclick="ghConfirm(event, 'Are you sure you want to drop your reservation for @e.EventTitle?', () => this.closest('form').submit())">Drop</button>
                                     </form>
                                 }
                             </td>

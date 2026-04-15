@@ -41,10 +41,10 @@
                 <button class="btn-edit" onclick="openEditModal(@ev.EventId, '@Html.Raw(ev.Title.Replace("'", "\\'"))', '@Html.Raw(ev.Description.Replace("'", "\\'"))', '@ev.EventDate.ToString("yyyy-MM-ddTHH:mm")', '@Html.Raw(ev.Location.Replace("'", "\\'"))', @ev.Capacity, @ev.Price)">
                     Edit
                 </button>
-                <form method="post" asp-page-handler="Delete" style="margin:0"
-                      onsubmit="return confirm('Delete this event?')">
+                <form method="post" asp-page-handler="Delete" style="margin:0" id="del-form-@ev.EventId">
                     <input type="hidden" name="eventId" value="@ev.EventId" />
-                    <button type="submit" class="btn-key" title="Delete Event">
+                    <button type="button" class="btn-key" title="Delete Event"
+                        onclick="ghConfirm(event, 'Are you sure you want to delete the event &quot;@ev.Title&quot;? This cannot be undone.', () => document.getElementById('del-form-@ev.EventId').submit())">
                         <i class="fa-solid fa-trash"></i>
                     </button>
                 </form>

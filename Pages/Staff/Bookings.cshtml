@@ -58,14 +58,16 @@
                     {
                         <form method="post" asp-page-handler="CheckIn" style="display:inline">
                             <input type="hidden" name="bookingId" value="@b.BookingId" />
-                            <button class="action-link">Check In</button>
+                            <button class="action-link"
+                                onclick="ghConfirm(event, 'Are you sure you want to check in @b.GuestName (Room @b.RoomNumber)?', () => this.closest(\'form\').submit())">Check In</button>
                         </form>
                     }
                     else if (b.Status == "CHECKED_IN")
                     {
                         <form method="post" asp-page-handler="CheckOut" style="display:inline">
                             <input type="hidden" name="bookingId" value="@b.BookingId" />
-                            <button class="action-link">Check Out</button>
+                            <button class="action-link"
+                                onclick="ghConfirm(event, 'Are you sure you want to check out @b.GuestName (Room @b.RoomNumber)?', () => this.closest(\'form\').submit())">Check Out</button>
                         </form>
                     }
                 </td>

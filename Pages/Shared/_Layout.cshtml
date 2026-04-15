@@ -43,7 +43,7 @@
                     {
                         <a href="/MyBookings" class="login-link">My Bookings</a>
                     }
-                    <a href="/Logout" class="login-link">Logout</a>
+                    <a href="/Logout" class="login-link" onclick="ghConfirm(event, 'Are you sure you want to log out?', () => window.location.href='/Logout')">Logout</a>
                 }
                 else
                 {

@@ -7,6 +7,7 @@
     <script type="importmap"></script>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/Staff.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 </head>
 <body class="staff-body">
@@ -58,6 +59,10 @@
             <a href="/Index" class="sidebar-exit">
                 <i class="fa-solid fa-arrow-right-from-bracket"></i> Exit
             </a>
+            <a href="/Logout" class="sidebar-exit"
+               onclick="ghConfirm(event, 'Are you sure you want to log out?', () => window.location.href='/Logout')">
+                <i class="fa-solid fa-right-from-bracket"></i> Logout
+            </a>
         </aside>
 
         <!-- Main Content -->
@@ -68,6 +73,7 @@
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
