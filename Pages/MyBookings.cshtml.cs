@@ -91,6 +91,22 @@ namespace HotelBookingSystem.Pages
             return Page();
         }
 
+        public IActionResult OnPostCancelRoom(int bookingId)
+        {
+            var userId = HttpContext.Session.GetString("UserId");
+            if (string.IsNullOrEmpty(userId)) return Redirect("/Login");
+
+            using var conn = new SqlConnection(_conn);
+            conn.Open();
+            using var cmd = new SqlCommand(
+                "UPDATE Bookings SET status = 'CANCELLED' WHERE bookingId = @id AND userId = @uid AND status = 'CONFIRMED'", conn);
+            cmd.Parameters.AddWithValue("@id",  bookingId);
+            cmd.Parameters.AddWithValue("@uid", int.Parse(userId));
+            cmd.ExecuteNonQuery();
+
+            return RedirectToPage();
+        }
+
         public IActionResult OnPostCancelEvent(int eventBookingId)
         {
             var userId = HttpContext.Session.GetString("UserId");

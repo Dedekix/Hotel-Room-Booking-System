@@ -293,6 +293,7 @@
 .badge-checkedin  { color: #2e7d52; border-color: #2e7d52; background: transparent; }
 .badge-confirmed  { color: #555;    border-color: #bbb;    background: transparent; }
 .badge-completed  { color: #555;    border-color: #bbb;    background: transparent; }
+.badge-cancelled  { color: #c0392b; border-color: #c0392b; background: transparent; }
 
 .action-link {
     font-size: 13.5px;

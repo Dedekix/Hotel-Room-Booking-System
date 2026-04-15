@@ -30,6 +30,7 @@
                         <th>Guests</th>
                         <th>Total</th>
                         <th>Status</th>
+                        <th>Action</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -44,6 +45,16 @@
                             <td>@b.GuestCount</td>
                             <td class="price-cell">$@b.TotalPrice.ToString("0.00")</td>
                             <td><span class="status-badge status-@b.Status.ToLower().Replace("_","-")">@b.Status.Replace("_", " ")</span></td>
+                            <td>
+                                @if (b.Status != "CANCELLED" && b.Status != "CHECKED_IN" && b.Status != "CHECKED_OUT" && b.Status != "COMPLETED")
+                                {
+                                    <form method="post" asp-page-handler="CancelRoom">
+                                        <input type="hidden" name="bookingId" value="@b.BookingId" />
+                                        <button type="submit" class="btn-drop"
+                                            onclick="return confirm('Cancel your booking for Room @b.RoomNumber?')">Cancel</button>
+                                    </form>
+                                }
+                            </td>
                         </tr>
                     }
                 </tbody>
