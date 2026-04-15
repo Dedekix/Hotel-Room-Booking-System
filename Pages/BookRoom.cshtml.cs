@@ -74,9 +74,8 @@ namespace HotelBookingSystem.Pages
                     return Page();
                 }
                 int hours = durationHours ?? 1;
-                checkIn    = hDate;
-                checkOut   = hDate;
-                // pricePerHour not in DB schema — derive as pricePerNight / 8
+                checkIn    = hDate.Date;
+                checkOut   = hDate.Date.AddDays(1);  // DATE column: next day satisfies CHK_Dates
                 totalPrice = Math.Round(PricePerNight / 8 * hours, 2);
             }
             else
