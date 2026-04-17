@@ -4,96 +4,139 @@
     Layout = "_StaffLayout";
     ViewData["Title"] = "Dashboard";
     ViewData["ActivePage"] = "Dashboard";
+    var userName = HttpContext.Session.GetString("UserFullName") ?? "there";
+    var firstName = userName.Split(' ')[0];
+    var now = DateTime.Now;
+    var greeting = now.Hour < 12 ? "Good morning" : now.Hour < 17 ? "Good afternoon" : "Good evening";
 }
 
-<h1 class="staff-page-title">Dashboard</h1>
+<!-- PAGE HEADER -->
+<div class="dash-header">
+    <div>
+        <p class="dash-greeting">@greeting, @firstName 👋</p>
+        <h1 class="staff-page-title">Dashboard</h1>
+        <p class="dash-date"><i class="fa-regular fa-calendar"></i> @now.ToString("dddd, MMMM d, yyyy")</p>
+    </div>
+    <a href="/Staff/Bookings" class="dash-header-btn">
+        <i class="fa-solid fa-calendar-plus"></i> View All Bookings
+    </a>
+</div>
 
+<!-- STAT CARDS -->
 <div class="stats-grid">
     <div class="stat-card">
         <div class="stat-card-top">
-            <span class="stat-label">Total Bookings</span>
-            <div class="stat-icon blue"><i class="fa-regular fa-calendar"></i></div>
+            <div>
+                <span class="stat-label">Total Bookings</span>
+                <div class="stat-value">@Model.TotalBookings</div>
+            </div>
+            <div class="stat-icon blue"><i class="fa-regular fa-calendar-check"></i></div>
         </div>
-        <div class="stat-value">@Model.TotalBookings</div>
+        <div class="stat-footer">
+            <span class="stat-trend stat-trend-up"><i class="fa-solid fa-arrow-trend-up"></i> All time</span>
+        </div>
     </div>
+
     <div class="stat-card">
         <div class="stat-card-top">
-            <span class="stat-label">Guests In-House</span>
+            <div>
+                <span class="stat-label">Guests In-House</span>
+                <div class="stat-value">@Model.TodayCheckIns</div>
+            </div>
             <div class="stat-icon green"><i class="fa-solid fa-bed"></i></div>
         </div>
-        <div class="stat-value">@Model.TodayCheckIns</div>
+        <div class="stat-footer">
+            <span class="stat-trend stat-trend-green"><i class="fa-solid fa-circle-check"></i> Currently checked in</span>
+        </div>
     </div>
+
     <div class="stat-card">
         <div class="stat-card-top">
-            <span class="stat-label">Total Revenue</span>
-            <div class="stat-icon orange"><i class="fa-solid fa-chart-bar"></i></div>
+            <div>
+                <span class="stat-label">Total Revenue</span>
+                <div class="stat-value">$@Model.TotalRevenue.ToString("N0")</div>
+            </div>
+            <div class="stat-icon orange"><i class="fa-solid fa-dollar-sign"></i></div>
         </div>
-        <div class="stat-value">$@Model.TotalRevenue.ToString("N0")</div>
+        <div class="stat-footer">
+            <span class="stat-trend stat-trend-up"><i class="fa-solid fa-arrow-trend-up"></i> Confirmed & checked-in</span>
+        </div>
     </div>
+
     <div class="stat-card">
         <div class="stat-card-top">
-            <span class="stat-label">Occupancy</span>
-            <div class="stat-icon yellow"><i class="fa-solid fa-table-cells"></i></div>
+            <div>
+                <span class="stat-label">Occupancy Rate</span>
+                <div class="stat-value">@Model.OccupancyPercent%</div>
+            </div>
+            <div class="stat-icon yellow"><i class="fa-solid fa-chart-pie"></i></div>
         </div>
-        <div class="stat-value">@Model.OccupancyPercent%</div>
-        <div style="font-size:12px;color:#aaa;">@Model.TodayCheckIns / @Model.TotalRooms rooms</div>
+        <div class="stat-footer">
+            <div class="occupancy-bar-wrap">
+                <div class="occupancy-bar-track">
+                    <div class="occupancy-bar-fill" style="width:@Model.OccupancyPercent%"></div>
+                </div>
+                <span class="occupancy-label">@Model.TodayCheckIns / @Model.TotalRooms rooms</span>
+            </div>
+        </div>
     </div>
 </div>
 
-@if (Model.PendingMessages > 0)
-{
-    <div class="staff-alert staff-alert-error" style="margin-bottom:28px;">
-        <i class="fa-solid fa-envelope" style="margin-right:8px;"></i>
-        You have <strong>@Model.PendingMessages</strong> unread contact message@(Model.PendingMessages > 1 ? "s" : "").
-        <a href="/Staff/Messages" style="color:inherit;font-weight:700;margin-left:6px;">View →</a>
-    </div>
-}
-
-<h2 class="section-title">Active &amp; Upcoming Guests</h2>
+<!-- ACTIVITY SECTION -->
+<div class="dash-section-header">
+    <h2 class="section-title"><i class="fa-solid fa-users"></i> Active &amp; Upcoming Guests</h2>
+    <span class="dash-count-badge">@Model.TodayActivity.Count</span>
+</div>
 
 @if (!Model.TodayActivity.Any())
 {
-    <div class="activity-list">
-        <div class="activity-item" style="justify-content:center;color:#aaa;font-size:14px;">
-            No active or upcoming bookings.
-        </div>
+    <div class="dash-empty">
+        <i class="fa-regular fa-calendar-xmark"></i>
+        <p>No active or upcoming bookings right now.</p>
     </div>
 }
 else
 {
     <div class="activity-list">
+        <div class="activity-list-header">
+            <span>Guest</span>
+            <span>Room</span>
+            <span>Check-in</span>
+            <span>Check-out</span>
+            <span>Status</span>
+            <span>Action</span>
+        </div>
         @foreach (var item in Model.TodayActivity)
         {
             bool isCheckedIn = item.Status == "CHECKED_IN";
             <div class="activity-item">
-                <div class="activity-left">
-                    <i class="fa-solid @(isCheckedIn ? "fa-arrow-right-to-bracket" : "fa-clock") activity-icon"
-                       style="color:@(isCheckedIn ? "#3bbf7a" : "#b07a2a")"></i>
-                    <div>
-                        <div class="activity-name">@item.GuestName</div>
-                        <div class="activity-sub">
-                            Room @item.RoomNumber &middot;
-                            @(isCheckedIn ? "Checked In" : "Arriving " + item.CheckIn.ToString("MMM d"))
-                            &middot; Check-out @item.CheckOut.ToString("MMM d")
-                        </div>
-                    </div>
+                <div class="activity-guest">
+                    <div class="activity-avatar">@item.GuestName[0]</div>
+                    <span class="activity-name">@item.GuestName</span>
                 </div>
-                <div style="display:flex;align-items:center;gap:12px;">
-                    <span class="badge-status @(isCheckedIn ? "badge-checkedin" : "badge-confirmed")">
-                        @(isCheckedIn ? "Checked In" : "Confirmed")
-                    </span>
+                <span class="activity-room">Room @item.RoomNumber</span>
+                <span class="activity-date">@item.CheckIn.ToString("MMM d, yyyy")</span>
+                <span class="activity-date">@item.CheckOut.ToString("MMM d, yyyy")</span>
+                <span class="badge-status @(isCheckedIn ? "badge-checkedin" : "badge-confirmed")">
+                    @(isCheckedIn ? "Checked In" : "Confirmed")
+                </span>
+                <div>
                     @if (isCheckedIn)
                     {
                         <form method="post" asp-page-handler="CheckOut" style="margin:0;">
                             <input type="hidden" name="bookingId" value="@item.BookingId" />
-                            <button type="submit" class="action-link">Check Out</button>
+                            <button type="submit" class="action-btn action-btn-checkout">
+                                <i class="fa-solid fa-right-from-bracket"></i> Check Out
+                            </button>
                         </form>
                     }
                     else
                     {
                         <form method="post" asp-page-handler="CheckIn" style="margin:0;">
                             <input type="hidden" name="bookingId" value="@item.BookingId" />
-                            <button type="submit" class="action-link">Check In</button>
+                            <button type="submit" class="action-btn action-btn-checkin">
+                                <i class="fa-solid fa-right-to-bracket"></i> Check In
+                            </button>
                         </form>
                     }
                 </div>

@@ -2,6 +2,7 @@
 @model HotelBookingSystem.Pages.BookEventModel
 @{
     ViewData["Title"] = "Book Event";
+    int spotsPercent = Model.Capacity > 0 ? (int)((double)(Model.Capacity - Model.SpotsLeft) / Model.Capacity * 100) : 0;
 }
 <link rel="stylesheet" href="~/css/BookRoom.css" />
 <link rel="stylesheet" href="~/css/BookEvent.css" />
@@ -12,13 +13,44 @@
 
     @if (Model.Confirmed)
     {
+        <!-- CONFIRMATION SCREEN -->
         <div class="bookevent-confirmed">
-            <div class="confirmed-icon"><i class="fa-solid fa-circle-check"></i></div>
+            <div class="confirmed-glow">
+                <div class="confirmed-icon"><i class="fa-solid fa-circle-check"></i></div>
+            </div>
             <h2>You're In!</h2>
-            <p>Your spot for <strong>@Model.EventTitle</strong> has been reserved.</p>
-            <p class="confirmed-sub"><i class="fa-regular fa-calendar"></i> @Model.EventDateDisplay &nbsp;·&nbsp; <i class="fa-solid fa-location-dot"></i> @Model.Location</p>
+            <p>Your spot for <strong>@Model.EventTitle</strong> has been reserved successfully.</p>
+            <div class="confirmed-details">
+                <div class="confirmed-detail-row">
+                    <i class="fa-regular fa-calendar"></i>
+                    <span>@Model.EventDateDisplay</span>
+                </div>
+                <div class="confirmed-detail-row">
+                    <i class="fa-solid fa-location-dot"></i>
+                    <span>@Model.Location</span>
+                </div>
+                @if (Model.Price > 0)
+                {
+                    <div class="confirmed-detail-row">
+                        <i class="fa-solid fa-tag"></i>
+                        <span>$@Model.Price.ToString("0.##") / person</span>
+                    </div>
+                }
+                else
+                {
+                    <div class="confirmed-detail-row confirmed-free">
+                        <i class="fa-solid fa-gift"></i>
+                        <span>Free Entry</span>
+                    </div>
+                }
+            </div>
             <div class="confirmed-actions">
-                <a href="/Events" class="btn-confirm" style="text-decoration:none;display:inline-block;text-align:center;width:auto;padding:13px 32px">Browse More Events</a>
+                <a href="/Events" class="btn-confirm" style="text-decoration:none">
+                    <i class="fa-solid fa-calendar-days"></i> Browse More Events
+                </a>
+                <a href="/MyBookings" class="btn-confirm-outline" style="text-decoration:none">
+                    <i class="fa-regular fa-calendar-check"></i> My Bookings
+                </a>
             </div>
         </div>
     }
@@ -26,95 +58,134 @@
     {
         <div class="bookroom-layout">
 
-            <!-- LEFT: Event Info -->
+            <!-- LEFT: Event Summary -->
             <div class="bookroom-left">
-                <img src="/@Model.ImagePath" alt="@Model.EventTitle" class="bookroom-img" />
-                <h2 class="bookroom-room-title">@Model.EventTitle</h2>
-                <p class="bookroom-room-desc">@Model.Description</p>
+                <div class="room-summary-card">
+                    <div class="event-img-wrap">
+                        <img src="/@Model.ImagePath" alt="@Model.EventTitle" class="bookroom-img" />
+                        <div class="event-img-overlay">
+                            <span class="event-type-label">@Model.EventTitle</span>
+                        </div>
+                    </div>
+                    <div class="room-summary-body">
+                        <h2 class="bookroom-room-title">@Model.EventTitle</h2>
+                        <p class="bookroom-room-desc">@Model.Description</p>
 
-                <div class="bookevent-meta">
-                    <div class="bookevent-meta-item">
-                        <i class="fa-regular fa-calendar"></i>
-                        <span>@Model.EventDateDisplay</span>
-                    </div>
-                    <div class="bookevent-meta-item">
-                        <i class="fa-solid fa-location-dot"></i>
-                        <span>@Model.Location</span>
-                    </div>
-                    <div class="bookevent-meta-item">
-                        <i class="fa-solid fa-users"></i>
-                        <span>@Model.SpotsLeft spots remaining</span>
-                    </div>
-                </div>
+                        <div class="bookevent-meta">
+                            <div class="bookevent-meta-item">
+                                <i class="fa-regular fa-calendar"></i>
+                                <span>@Model.EventDateDisplay</span>
+                            </div>
+                            <div class="bookevent-meta-item">
+                                <i class="fa-solid fa-location-dot"></i>
+                                <span>@Model.Location</span>
+                            </div>
+                            <div class="bookevent-meta-item">
+                                <i class="fa-solid fa-users"></i>
+                                <span>@Model.SpotsLeft of @Model.Capacity spots remaining</span>
+                            </div>
+                        </div>
 
-                <div class="bookroom-pricing">
-                    @if (Model.Price == 0)
-                    {
-                        <span class="price-night" style="color:#2e7d52">Free</span>
-                    }
-                    else
-                    {
-                        <span class="price-night">
-                            <span class="dollar">$</span>@Model.Price.ToString("0.##")<span class="per"> / person</span>
-                        </span>
-                    }
+                        <!-- Spots Progress Bar -->
+                        <div class="spots-bar-wrap">
+                            <div class="spots-bar-track">
+                                <div class="spots-bar-fill" style="width:@spotsPercent%"></div>
+                            </div>
+                            <span class="spots-bar-label">@spotsPercent% filled</span>
+                        </div>
+
+                        <div class="bookroom-pricing">
+                            @if (Model.Price == 0)
+                            {
+                                <div class="pricing-row">
+                                    <span><i class="fa-solid fa-gift"></i> Entry</span>
+                                    <strong class="price-free">Free</strong>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="pricing-row">
+                                    <span><i class="fa-solid fa-tag"></i> Per Person</span>
+                                    <strong>$@Model.Price.ToString("0.##")</strong>
+                                </div>
+                            }
+                        </div>
+                    </div>
                 </div>
             </div>
 
             <!-- RIGHT: Booking Form -->
             <div class="bookroom-right">
-                <h2>Reserve Your Spot</h2>
-
-                @if (!string.IsNullOrEmpty(Model.ErrorMessage))
-                {
-                    <div class="booking-error">@Model.ErrorMessage</div>
-                }
-
-                <form method="post">
-                    <input type="hidden" name="eventId" value="@Model.EventId" />
-
-                    <div class="form-group">
-                        <label>Full Name</label>
-                        <input type="text" name="fullName" placeholder="John Smith"
-                               value="@Model.PrefillName" required />
-                    </div>
-                    <div class="form-group">
-                        <label>Email</label>
-                        <input type="email" name="email" placeholder="john@email.com"
-                               value="@Model.PrefillEmail" required />
+                <div class="form-card">
+                    <div class="form-card-header">
+                        <h2><i class="fa-solid fa-ticket"></i> Reserve Your Spot</h2>
+                        <p>Complete the form below to secure your place</p>
                     </div>
 
-                    <div class="bookevent-summary">
-                        <div class="summary-row">
-                            <span>Event</span>
-                            <span>@Model.EventTitle</span>
-                        </div>
-                        <div class="summary-row">
-                            <span>Date</span>
-                            <span>@Model.EventDateDisplay</span>
-                        </div>
-                        <div class="summary-row">
-                            <span>Location</span>
-                            <span>@Model.Location</span>
-                        </div>
-                        @if (Model.Price > 0)
-                        {
-                            <div class="summary-row summary-total">
-                                <span>Price</span>
-                                <span>$@Model.Price.ToString("0.##") / person</span>
+                    @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+                    {
+                        <div class="booking-error"><i class="fa-solid fa-circle-exclamation"></i> @Model.ErrorMessage</div>
+                    }
+
+                    <form method="post">
+                        <input type="hidden" name="eventId" value="@Model.EventId" />
+
+                        <!-- Contact Details -->
+                        <div class="form-section">
+                            <div class="form-section-label">Your Details</div>
+                            <div class="form-group">
+                                <label>Full Name</label>
+                                <div class="input-icon">
+                                    <i class="fa-regular fa-user"></i>
+                                    <input type="text" name="fullName" placeholder="John Smith"
+                                           value="@Model.PrefillName" required />
+                                </div>
                             </div>
-                        }
-                        else
-                        {
-                            <div class="summary-row summary-total">
-                                <span>Price</span>
-                                <span style="color:#2e7d52;font-weight:700">Free</span>
+                            <div class="form-group">
+                                <label>Email Address</label>
+                                <div class="input-icon">
+                                    <i class="fa-regular fa-envelope"></i>
+                                    <input type="email" name="email" placeholder="john@email.com"
+                                           value="@Model.PrefillEmail" required />
+                                </div>
                             </div>
-                        }
-                    </div>
+                        </div>
 
-                    <button type="submit" class="btn-confirm">Confirm Reservation</button>
-                </form>
+                        <!-- Booking Summary -->
+                        <div class="form-section">
+                            <div class="form-section-label">Booking Summary</div>
+                            <div class="bookevent-summary">
+                                <div class="summary-row">
+                                    <span>Event</span>
+                                    <span>@Model.EventTitle</span>
+                                </div>
+                                <div class="summary-row">
+                                    <span>Date</span>
+                                    <span>@Model.EventDateDisplay</span>
+                                </div>
+                                <div class="summary-row">
+                                    <span>Location</span>
+                                    <span>@Model.Location</span>
+                                </div>
+                                <div class="summary-row summary-total">
+                                    <span>Price</span>
+                                    @if (Model.Price > 0)
+                                    {
+                                        <span>$@Model.Price.ToString("0.##") / person</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="price-free">Free</span>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn-confirm">
+                            <i class="fa-solid fa-check"></i> Confirm Reservation
+                        </button>
+                    </form>
+                </div>
             </div>
 
         </div>
@@ -122,24 +193,24 @@
 </div>
 
 <!-- FOOTER -->
-<footer class="rooms-footer">
+<footer class="bookroom-footer">
     <div class="footer-inner">
         <div class="footer-col">
-            <h3><i class="fa-solid fa-building fa-sm" style="color:#b07a2a"></i> Grand Haven</h3>
+            <h3><i class="fa-solid fa-hotel"></i> Grand Haven</h3>
             <p>Experience luxury and comfort in the heart of the city. Your perfect getaway awaits.</p>
         </div>
         <div class="footer-col">
             <h4>Contact</h4>
-            <p>+250791375079</p>
-            <p>info@grandhaven.com</p>
-            <p>Kigali, Rwanda</p>
+            <p><i class="fa-solid fa-phone"></i> +250 791 375 079</p>
+            <p><i class="fa-solid fa-envelope"></i> info@grandhaven.com</p>
+            <p><i class="fa-solid fa-location-dot"></i> Kigali, Rwanda</p>
         </div>
         <div class="footer-col">
             <h4>Quick Links</h4>
-            <p><a href="/Index">About Us</a></p>
-            <p><a href="/Rooms">Rooms</a></p>
-            <p><a href="/Events">Events</a></p>
-            <p><a href="/Contact">Contact</a></p>
+            <a href="/Index">Home</a>
+            <a href="/Rooms">Rooms</a>
+            <a href="/Events">Events</a>
+            <a href="/Contact">Contact</a>
         </div>
     </div>
     <div class="footer-bottom">

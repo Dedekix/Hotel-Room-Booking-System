@@ -3,25 +3,59 @@
 @{
     ViewData["Title"] = "Login";
 }
+<link rel="stylesheet" href="~/css/login.css" />
 
 <div class="auth-container">
-    <div class="auth-card">
-        <div class="auth-logo">🏨 Grand Haven</div>
-        <h2>Welcome Back</h2>
+    <!-- Left Panel -->
+    <div class="auth-panel">
+        <div class="auth-panel-overlay">
+            <div class="auth-panel-brand">
+                <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M10 20 L14 10 L24 17 L34 10 L38 20 Z" fill="#f0a94b"/>
+                    <rect x="9" y="20" width="30" height="3" rx="1.5" fill="#f0a94b"/>
+                    <rect x="11" y="23" width="26" height="18" rx="2" fill="white"/>
+                    <rect x="20" y="33" width="8" height="8" rx="1" fill="#f0a94b"/>
+                    <rect x="14" y="27" width="5" height="4" rx="0.8" fill="#f0a94b" opacity="0.9"/>
+                    <rect x="29" y="27" width="5" height="4" rx="0.8" fill="#f0a94b" opacity="0.9"/>
+                    <rect x="8" y="41" width="32" height="2" rx="1" fill="#f0a94b"/>
+                </svg>
+                <h2>Grand Haven</h2>
+                <p>Luxury Hotel</p>
+            </div>
+            <div class="auth-panel-quote">
+                <blockquote>"Where every stay becomes a cherished memory."</blockquote>
+                <div class="auth-panel-features">
+                    <span><i class="fa-solid fa-check"></i> Instant booking confirmation</span>
+                    <span><i class="fa-solid fa-check"></i> Exclusive member offers</span>
+                </div>
+            </div>
+        </div>
+    </div>
 
+    <!-- Right Panel -->
+    <div class="auth-form-panel">
+        <div class="auth-card">
+            <div class="auth-card-header">
+                <h2>Welcome Back</h2>
+                <p class="subtitle">Sign in to your Grand Haven account</p>
+            </div>
 
-        @if (!string.IsNullOrEmpty(Model.ErrorMessage))
-        {
-            <p class="auth-error">@Model.ErrorMessage</p>
-        }
+            @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+            {
+                <div class="auth-error"><i class="fa-solid fa-circle-exclamation"></i> @Model.ErrorMessage</div>
+            }
 
-        <form method="post">
-            <label for="Email">Email Address</label>
-            <input type="email" id="Email" name="Email" placeholder="" value="@Model.Email" required />
+            <form method="post">
+                <div class="form-group">
+                    <label for="Email"><i class="fa-regular fa-envelope"></i> Email Address</label>
+                    <input type="email" id="Email" name="Email" placeholder="" value="@Model.Email" required />
+                </div>
 
-            <button type="submit">Login</button>
-        </form>
+                <button type="submit" class="auth-submit"><i class="fa-solid fa-arrow-right-to-bracket"></i> Sign In</button>
+            </form>
 
-        <p class="auth-switch">Don't have an account? <a href="/Signup">Sign Up</a></p>
+            <div class="auth-divider"><span>New to Grand Haven?</span></div>
+            <p class="auth-switch">Don't have an account? <a href="/Signup">SignUp</a></p>
+        </div>
     </div>
 </div>

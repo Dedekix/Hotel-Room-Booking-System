@@ -2,113 +2,211 @@
 @model HotelBookingSystem.Pages.MyBookingsModel
 @{
     ViewData["Title"] = "My Bookings";
+    string userName = HttpContext.Session.GetString("UserFullName") ?? "Guest";
 }
 <link rel="stylesheet" href="~/css/MyBookings.css" />
 
+<!-- HERO -->
+<div class="mybookings-hero">
+    <div class="mybookings-hero-overlay">
+        <span class="mybookings-tag"><i class="fa-solid fa-calendar-check"></i> My Account</span>
+        <h1>Welcome back, @userName.Split(' ')[0]</h1>
+        <p>Manage your room bookings and event reservations all in one place</p>
+        <div class="hero-summary">
+            <div class="hero-stat">
+                <span>@Model.RoomBookings.Count</span>
+                <p>Room Booking@(Model.RoomBookings.Count != 1 ? "s" : "")</p>
+            </div>
+            <div class="hero-stat-divider"></div>
+            <div class="hero-stat">
+                <span>@Model.EventReservations.Count</span>
+                <p>Event Reservation@(Model.EventReservations.Count != 1 ? "s" : "")</p>
+            </div>
+            <div class="hero-stat-divider"></div>
+            <div class="hero-stat">
+                <span>@Model.RoomBookings.Count(b => b.Status == "CONFIRMED" || b.Status == "CHECKED_IN")</span>
+                <p>Active</p>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="mybookings-page">
 
-    <h1 class="mybookings-title">My Bookings</h1>
+    <!-- TAB SWITCHER -->
+    <div class="tab-bar">
+        <button class="tab-btn active" id="tabRooms" onclick="switchTab('rooms')">
+            <i class="fa-solid fa-bed"></i> Room Bookings
+            <span class="tab-count">@Model.RoomBookings.Count</span>
+        </button>
+        <button class="tab-btn" id="tabEvents" onclick="switchTab('events')">
+            <i class="fa-solid fa-calendar-star"></i> Event Reservations
+            <span class="tab-count">@Model.EventReservations.Count</span>
+        </button>
+    </div>
 
     <!-- ROOM BOOKINGS -->
-    <h2 class="section-heading"><i class="fa-solid fa-bed"></i> Room Bookings</h2>
-
-    @if (!Model.RoomBookings.Any())
-    {
-        <p class="empty-msg">You have no room bookings yet. <a href="/Rooms">Browse rooms</a></p>
-    }
-    else
-    {
-        <div class="table-wrap">
-            <table class="my-table">
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Room</th>
-                        <th>Type</th>
-                        <th>Check-in</th>
-                        <th>Check-out</th>
-                        <th>Guests</th>
-                        <th>Total</th>
-                        <th>Status</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var b in Model.RoomBookings)
-                    {
-                        <tr>
-                            <td class="id-cell">#@b.BookingId</td>
-                            <td><strong>Room @b.RoomNumber</strong></td>
-                            <td>@b.RoomType</td>
-                            <td>@b.CheckIn.ToString("MMM d, yyyy")</td>
-                            <td>@b.CheckOut.ToString("MMM d, yyyy")</td>
-                            <td>@b.GuestCount</td>
-                            <td class="price-cell">$@b.TotalPrice.ToString("0.00")</td>
-                            <td><span class="status-badge status-@b.Status.ToLower().Replace("_","-")">@b.Status.Replace("_", " ")</span></td>
-                            <td>
-                                @if (b.Status != "CANCELLED" && b.Status != "CHECKED_IN" && b.Status != "CHECKED_OUT" && b.Status != "COMPLETED")
-                                {
-                                    <form method="post" asp-page-handler="CancelRoom">
-                                        <input type="hidden" name="bookingId" value="@b.BookingId" />
-                                        <button type="submit" class="btn-drop"
-                                            onclick="ghConfirm(event, 'Are you sure you want to cancel your booking for Room @b.RoomNumber?', () => this.closest('form').submit())">Cancel</button>
-                                    </form>
-                                }
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
-    }
+    <div id="panelRooms">
+        @if (!Model.RoomBookings.Any())
+        {
+            <div class="empty-state">
+                <i class="fa-solid fa-bed"></i>
+                <h3>No Room Bookings Yet</h3>
+                <p>You haven't booked any rooms. Start exploring our available rooms.</p>
+                <a href="/Rooms" class="empty-cta">Browse Rooms <i class="fa-solid fa-arrow-right"></i></a>
+            </div>
+        }
+        else
+        {
+            <div class="bookings-list">
+                @foreach (var b in Model.RoomBookings)
+                {
+                    <div class="booking-card">
+                        <div class="booking-card-side status-side-@b.Status.ToLower().Replace("_", "-")"></div>
+                        <div class="booking-card-body">
+                            <div class="booking-card-top">
+                                <div class="booking-card-info">
+                                    <span class="booking-id">#@b.BookingId</span>
+                                    <h3>Room @b.RoomNumber</h3>
+                                    <span class="booking-type-tag">@b.RoomType</span>
+                                </div>
+                                <span class="status-badge status-@b.Status.ToLower().Replace("_", "-")">
+                                    @b.Status.Replace("_", " ")
+                                </span>
+                            </div>
+                            <div class="booking-card-meta">
+                                <div class="meta-item">
+                                    <i class="fa-regular fa-calendar"></i>
+                                    <span>Check-in: <strong>@b.CheckIn.ToString("MMM d, yyyy")</strong></span>
+                                </div>
+                                <div class="meta-item">
+                                    <i class="fa-regular fa-calendar-check"></i>
+                                    <span>Check-out: <strong>@b.CheckOut.ToString("MMM d, yyyy")</strong></span>
+                                </div>
+                                <div class="meta-item">
+                                    <i class="fa-solid fa-user-group"></i>
+                                    <span>@b.GuestCount Guest@(b.GuestCount > 1 ? "s" : "")</span>
+                                </div>
+                                <div class="meta-item meta-price">
+                                    <i class="fa-solid fa-tag"></i>
+                                    <span>$@b.TotalPrice.ToString("0.00")</span>
+                                </div>
+                            </div>
+                        </div>
+                        @if (b.Status != "CANCELLED" && b.Status != "CHECKED_IN" && b.Status != "CHECKED_OUT" && b.Status != "COMPLETED")
+                        {
+                            <div class="booking-card-action">
+                                <form method="post" asp-page-handler="CancelRoom">
+                                    <input type="hidden" name="bookingId" value="@b.BookingId" />
+                                    <button type="submit" class="btn-cancel"
+                                        onclick="ghConfirm(event, 'Cancel booking for Room @b.RoomNumber?', () => this.closest('form').submit())">
+                                        <i class="fa-solid fa-xmark"></i> Cancel
+                                    </button>
+                                </form>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        }
+    </div>
 
     <!-- EVENT RESERVATIONS -->
-    <h2 class="section-heading" style="margin-top:48px"><i class="fa-solid fa-calendar-star"></i> Event Reservations</h2>
-
-    @if (!Model.EventReservations.Any())
-    {
-        <p class="empty-msg">You have no event reservations yet. <a href="/Events">Browse events</a></p>
-    }
-    else
-    {
-        <div class="table-wrap">
-            <table class="my-table">
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Event</th>
-                        <th>Date</th>
-                        <th>Location</th>
-                        <th>Price</th>
-                        <th>Status</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var e in Model.EventReservations)
-                    {
-                        <tr>
-                            <td class="id-cell">#@e.EventBookingId</td>
-                            <td><strong>@e.EventTitle</strong></td>
-                            <td>@e.EventDate.ToString("MMM d, yyyy h:mm tt")</td>
-                            <td>@e.Location</td>
-                            <td>@(e.Price == 0 ? "Free" : "$" + e.Price.ToString("0.00"))</td>
-                            <td><span class="status-badge status-@e.Status.ToLower()">@e.Status</span></td>
-                            <td>
-                                @if (e.Status != "CANCELLED")
-                                {
-                                    <form method="post" asp-page-handler="CancelEvent">
-                                        <input type="hidden" name="eventBookingId" value="@e.EventBookingId" />
-                                        <button type="submit" class="btn-drop"
-                                            onclick="ghConfirm(event, 'Are you sure you want to drop your reservation for @e.EventTitle?', () => this.closest('form').submit())">Drop</button>
-                                    </form>
-                                }
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
-    }
+    <div id="panelEvents" style="display:none">
+        @if (!Model.EventReservations.Any())
+        {
+            <div class="empty-state">
+                <i class="fa-solid fa-calendar-star"></i>
+                <h3>No Event Reservations Yet</h3>
+                <p>You haven't reserved any events. Discover what's happening at Grand Haven.</p>
+                <a href="/Events" class="empty-cta">Browse Events <i class="fa-solid fa-arrow-right"></i></a>
+            </div>
+        }
+        else
+        {
+            <div class="bookings-list">
+                @foreach (var e in Model.EventReservations)
+                {
+                    <div class="booking-card">
+                        <div class="booking-card-side status-side-@e.Status.ToLower()"></div>
+                        <div class="booking-card-body">
+                            <div class="booking-card-top">
+                                <div class="booking-card-info">
+                                    <span class="booking-id">#@e.EventBookingId</span>
+                                    <h3>@e.EventTitle</h3>
+                                    <span class="booking-type-tag">Event</span>
+                                </div>
+                                <span class="status-badge status-@e.Status.ToLower()">@e.Status</span>
+                            </div>
+                            <div class="booking-card-meta">
+                                <div class="meta-item">
+                                    <i class="fa-regular fa-calendar"></i>
+                                    <span><strong>@e.EventDate.ToString("MMM d, yyyy h:mm tt")</strong></span>
+                                </div>
+                                <div class="meta-item">
+                                    <i class="fa-solid fa-location-dot"></i>
+                                    <span>@e.Location</span>
+                                </div>
+                                <div class="meta-item meta-price">
+                                    <i class="fa-solid fa-tag"></i>
+                                    <span>@(e.Price == 0 ? "Free" : "$" + e.Price.ToString("0.00"))</span>
+                                </div>
+                            </div>
+                        </div>
+                        @if (e.Status != "CANCELLED")
+                        {
+                            <div class="booking-card-action">
+                                <form method="post" asp-page-handler="CancelEvent">
+                                    <input type="hidden" name="eventBookingId" value="@e.EventBookingId" />
+                                    <button type="submit" class="btn-cancel"
+                                        onclick="ghConfirm(event, 'Drop reservation for @e.EventTitle?', () => this.closest('form').submit())">
+                                        <i class="fa-solid fa-xmark"></i> Drop
+                                    </button>
+                                </form>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        }
+    </div>
 
 </div>
+
+<!-- FOOTER -->
+<footer class="mybookings-footer">
+    <div class="footer-inner">
+        <div class="footer-col">
+            <h3><i class="fa-solid fa-hotel"></i> Grand Haven</h3>
+            <p>Experience luxury and comfort in the heart of the city. Your perfect getaway awaits.</p>
+        </div>
+        <div class="footer-col">
+            <h4>Contact</h4>
+            <p><i class="fa-solid fa-phone"></i> +250 791 375 079</p>
+            <p><i class="fa-solid fa-envelope"></i> info@grandhaven.com</p>
+            <p><i class="fa-solid fa-location-dot"></i> Kigali, Rwanda</p>
+        </div>
+        <div class="footer-col">
+            <h4>Quick Links</h4>
+            <a href="/Index">Home</a>
+            <a href="/Rooms">Rooms</a>
+            <a href="/Events">Events</a>
+            <a href="/Contact">Contact</a>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        <p>&copy; 2026 Grand Haven Hotel. All rights reserved.</p>
+    </div>
+</footer>
+
+@section Scripts {
+<script>
+    function switchTab(tab) {
+        const isRooms = tab === 'rooms';
+        document.getElementById('panelRooms').style.display  = isRooms ? 'block' : 'none';
+        document.getElementById('panelEvents').style.display = isRooms ? 'none'  : 'block';
+        document.getElementById('tabRooms').classList.toggle('active', isRooms);
+        document.getElementById('tabEvents').classList.toggle('active', !isRooms);
+    }
+</script>
+}

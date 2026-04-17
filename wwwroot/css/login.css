@@ -1,146 +1,241 @@
+/* ── TWO-PANEL LAYOUT ── */
 .auth-container {
-    min-height: calc(100vh - 70px);
     display: flex;
-    justify-content: center;
+    min-height: 100vh;
+    padding-top: 64px;
+}
+
+/* ── LEFT PANEL ── */
+.auth-panel {
+    flex: 1;
+    background: url('/Images/hero-hotel.jpg') center/cover no-repeat;
+    position: relative;
+    min-height: 100%;
+}
+
+.auth-panel-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(160deg, rgba(20,10,0,0.82) 0%, rgba(176,122,42,0.55) 100%);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 60px 50px;
+}
+
+.auth-panel-brand {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+}
+
+.auth-panel-brand svg {
+    width: 56px;
+    height: 56px;
+    margin-bottom: 6px;
+    filter: drop-shadow(0 4px 10px rgba(0,0,0,0.3));
+}
+
+.auth-panel-brand h2 {
+    font-size: 28px;
+    font-weight: 800;
+    color: white;
+    margin: 0;
+    letter-spacing: -0.3px;
+}
+
+.auth-panel-brand p {
+    font-size: 11px;
+    font-weight: 700;
+    color: #f0a94b;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin: 0;
+}
+
+.auth-panel-quote blockquote {
+    font-size: 20px;
+    font-weight: 600;
+    color: white;
+    line-height: 1.5;
+    margin: 0 0 28px;
+    font-style: italic;
+    opacity: 0.92;
+}
+
+.auth-panel-features {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.auth-panel-features span {
+    display: flex;
     align-items: center;
-    background: #f7f4ef;
+    gap: 10px;
+    font-size: 14px;
+    color: rgba(255,255,255,0.85);
+}
+
+.auth-panel-features i {
+    width: 22px;
+    height: 22px;
+    background: rgba(176,122,42,0.5);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    color: #f0a94b;
+    flex-shrink: 0;
+}
+
+/* ── RIGHT PANEL ── */
+.auth-form-panel {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #faf8f5;
     padding: 40px 20px;
 }
 
 .auth-card {
-    width: 420px;
-    background: #ffffff;
-    padding: 45px 40px;
-    border-radius: 14px;
-    text-align: center;
-    box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+    width: 100%;
+    max-width: 420px;
 }
 
-.auth-logo {
-    font-size: 22px;
-    color: #b07a2a;
-    font-weight: bold;
-    margin-bottom: 12px;
+.auth-card-header {
+    margin-bottom: 32px;
 }
 
-.auth-card h2 {
-    font-size: 22px;
-    color: #2c2c2c;
-    margin-bottom: 6px;
+.auth-card-header h2 {
+    font-size: 28px;
+    font-weight: 800;
+    color: #1a1a1a;
+    margin: 0 0 8px;
 }
 
 .subtitle {
     font-size: 14px;
     color: #888;
-    margin-bottom: 28px;
+    margin: 0;
 }
 
-.auth-card label {
-    display: block;
-    text-align: left;
-    margin-bottom: 5px;
-    font-size: 14px;
+/* ── FORM ELEMENTS ── */
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 13px;
+    font-weight: 600;
     color: #444;
-    font-weight: 500;
+    margin-bottom: 8px;
+}
+
+.form-group label i {
+    color: #b07a2a;
+    font-size: 13px;
 }
 
 .auth-card input,
 .auth-card select {
     width: 100%;
-    padding: 12px;
-    border-radius: 8px;
-    border: 1px solid #ddd;
-    margin-bottom: 18px;
+    padding: 13px 16px;
+    border: 1.5px solid #e8e4de;
+    border-radius: 10px;
     font-size: 14px;
+    color: #333;
+    background: white;
     box-sizing: border-box;
     outline: none;
-    transition: border 0.2s;
-    background: white;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    appearance: auto;
 }
 
 .auth-card input:focus,
 .auth-card select:focus {
     border-color: #b07a2a;
+    box-shadow: 0 0 0 3px rgba(176,122,42,0.1);
 }
 
-.auth-card button {
+.auth-submit {
     width: 100%;
-    margin-top: 5px;
-    background-color: #b07a2a;
+    padding: 14px;
+    background: #b07a2a;
     color: white;
-    padding: 13px;
-    border-radius: 8px;
     border: none;
-    font-weight: 600;
+    border-radius: 10px;
     font-size: 15px;
+    font-weight: 700;
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: background 0.2s, transform 0.15s;
+    margin-top: 8px;
 }
 
-.auth-card button:hover {
-    background-color: #9a6a22;
+.auth-submit:hover {
+    background: #9a6a22;
+    transform: translateY(-1px);
 }
+
+/* ── DIVIDER ── */
+.auth-divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 24px 0 12px;
+    color: #bbb;
+    font-size: 12px;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #e8e4de;
+}
+
+.auth-divider span { white-space: nowrap; color: #aaa; }
 
 .auth-switch {
-    margin-top: 20px;
-    font-size: 13px;
+    text-align: center;
+    font-size: 14px;
     color: #888;
+    margin: 0;
 }
 
 .auth-switch a {
     color: #b07a2a;
-    font-weight: 600;
+    font-weight: 700;
     text-decoration: none;
 }
 
-.auth-switch a:hover {
-    text-decoration: underline;
-}
+.auth-switch a:hover { text-decoration: underline; }
 
+/* ── ERROR ── */
 .auth-error {
     background: #fdecea;
     color: #c0392b;
-    border: 1px solid #f5c6cb;
-    border-radius: 6px;
-    padding: 10px 14px;
+    border: 1.5px solid #f5c6cb;
+    border-radius: 8px;
+    padding: 11px 14px;
     font-size: 13px;
-    margin-bottom: 16px;
-    text-align: left;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
-/* Navbar signup button */
-.signup-link {
-    background: #b07a2a;
-    color: white !important;
-    padding: 8px 18px;
-    border-radius: 6px;
-    text-decoration: none;
-    font-weight: 500;
-    font-size: 14px;
-    transition: background 0.2s;
-}
-
-.signup-link:hover {
-    background: #9a6a22;
-}
-
-/* Staff Portal button */
-.staff-portal-link {
-    background: #b07a2a;
-    color: white !important;
-    padding: 9px 20px;
-    border-radius: 7px;
-    text-decoration: none;
-    font-weight: 600;
-    font-size: 14px;
-    transition: background 0.2s;
-}
-
-.staff-portal-link:hover {
-    background: #9a6a22;
-}
-
-/* Active nav link */
-.nav-active {
-    color: #b07a2a !important;
-    font-weight: 600;
-}
+/* ── KEEP OLD CLASSES WORKING ── */
+.signup-link, .staff-portal-link { text-decoration: none; }
+.nav-active { color: #b07a2a !important; font-weight: 600; }

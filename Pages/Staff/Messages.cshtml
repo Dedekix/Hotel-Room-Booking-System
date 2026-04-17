@@ -4,46 +4,115 @@
     Layout = "_StaffLayout";
     ViewData["Title"]      = "Messages";
     ViewData["ActivePage"] = "Messages";
+    int unread = Model.Messages.Count(m => !m.IsRead);
 }
 
-<h1 class="staff-page-title">Contact Messages</h1>
+<!-- PAGE HEADER -->
+<div class="dash-header">
+    <div>
+        <p class="dash-greeting">Admin Panel</p>
+        <h1 class="staff-page-title">Contact Messages</h1>
+        <p class="dash-date"><i class="fa-solid fa-envelope"></i> @Model.Messages.Count message@(Model.Messages.Count != 1 ? "s" : "") total</p>
+    </div>
+    @if (unread > 0)
+    {
+        <div class="unread-badge">
+            <i class="fa-solid fa-bell"></i> @unread unread message@(unread != 1 ? "s" : "")
+        </div>
+    }
+</div>
 
-<table class="bookings-table">
-    <thead>
-        <tr>
-            <th>#</th>
-            <th>Name</th>
-            <th>Email</th>
-            <th>Subject</th>
-            <th>Message</th>
-            <th>Sent At</th>
-            <th>Status</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var m in Model.Messages)
-        {
-            <tr style="@(!m.IsRead ? "font-weight:600" : "")">
-                <td><span class="booking-id">#@m.MessageId</span></td>
-                <td><span class="guest-name">@m.FullName</span></td>
-                <td style="color:#999;font-size:13px">@m.Email</td>
-                <td>@m.Subject</td>
-                <td style="max-width:260px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">@m.Message</td>
-                <td style="font-size:13px;color:#999">@m.SentAt</td>
-                <td>
-                    @if (!m.IsRead)
-                    {
-                        <form method="post">
-                            <input type="hidden" name="messageId" value="@m.MessageId" />
-                            <button type="submit" class="action-link" style="color:#b07a2a">Mark Read</button>
-                        </form>
-                    }
-                    else
-                    {
-                        <span style="font-size:12px;color:#aaa">Read</span>
-                    }
-                </td>
+<!-- SUMMARY PILLS -->
+<div class="rooms-summary">
+    <div class="summary-pill summary-pill-gold">
+        <i class="fa-solid fa-envelope-open"></i>
+        <span>@unread Unread</span>
+    </div>
+    <div class="summary-pill summary-pill-green">
+        <i class="fa-solid fa-check"></i>
+        <span>@(Model.Messages.Count - unread) Read</span>
+    </div>
+</div>
+
+<!-- TABLE -->
+<div class="staff-table-wrap">
+    <table class="staff-table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Sender</th>
+                <th>Subject</th>
+                <th>Message</th>
+                <th>Sent At</th>
+                <th>Status</th>
             </tr>
-        }
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+            @foreach (var m in Model.Messages)
+            {
+                <tr class="@(!m.IsRead ? "msg-unread" : "")">
+                    <td><span class="booking-id">#@m.MessageId</span></td>
+                    <td>
+                        <div class="table-guest">
+                            <div class="table-avatar">@m.FullName[0]</div>
+                            <div>
+                                <div style="font-weight:600;color:#1a1a1a;font-size:13.5px">@m.FullName</div>
+                                <div style="font-size:12px;color:#aaa">@m.Email</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td style="font-weight:600;font-size:13.5px;color:#1a1a1a">@m.Subject</td>
+                    <td>
+                        <div class="msg-preview" onclick="toggleMsg(this)">
+                            <span class="msg-short">@(m.Message.Length > 60 ? m.Message[..60] + "…" : m.Message)</span>
+                            <span class="msg-full" style="display:none">@m.Message</span>
+                            @if (m.Message.Length > 60)
+                            {
+                                <span class="msg-toggle-hint">Show more</span>
+                            }
+                        </div>
+                    </td>
+                    <td class="table-date">@m.SentAt</td>
+                    <td>
+                        @if (!m.IsRead)
+                        {
+                            <form method="post" style="margin:0">
+                                <input type="hidden" name="messageId" value="@m.MessageId" />
+                                <button type="submit" class="action-btn action-btn-checkin">
+                                    <i class="fa-solid fa-check"></i> Mark Read
+                                </button>
+                            </form>
+                        }
+                        else
+                        {
+                            <span class="badge-status badge-completed">Read</span>
+                        }
+                    </td>
+                </tr>
+            }
+            @if (!Model.Messages.Any())
+            {
+                <tr>
+                    <td colspan="6" class="table-empty">
+                        <i class="fa-regular fa-envelope"></i> No messages yet.
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@section Scripts {
+<script>
+    function toggleMsg(el) {
+        const short  = el.querySelector('.msg-short');
+        const full   = el.querySelector('.msg-full');
+        const hint   = el.querySelector('.msg-toggle-hint');
+        if (!full) return;
+        const isExpanded = full.style.display !== 'none';
+        short.style.display = isExpanded ? 'inline' : 'none';
+        full.style.display  = isExpanded ? 'none'   : 'inline';
+        if (hint) hint.textContent = isExpanded ? 'Show more' : 'Show less';
+    }
+</script>
+}

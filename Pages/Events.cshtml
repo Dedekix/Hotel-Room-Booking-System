@@ -2,14 +2,25 @@
 @model HotelBookingSystem.Pages.EventsModel
 @{
     ViewData["Title"] = "Events";
+    int totalEvents = Model.Events.Count;
 }
 <link rel="stylesheet" href="~/css/Events.css" />
 
+<!-- HERO BANNER -->
+<div class="events-hero">
+    <div class="events-hero-overlay">
+        <span class="events-tag"><i class="fa-solid fa-calendar-star"></i> Live Experiences</span>
+        <h1>Events at Grand Haven</h1>
+        <p>@totalEvents upcoming experience@(totalEvents != 1 ? "s" : "") &mdash; reserve your spot before it's gone</p>
+    </div>
+</div>
+
 <div class="events-page">
+    <!-- HEADER BAR -->
     <div class="events-header">
-        <div>
-            <h1>Events at Grand Haven</h1>
-            <p>Be part of something extraordinary — reserve your spot today</p>
+        <div class="events-count">
+            <i class="fa-solid fa-calendar-days"></i>
+            <span>@totalEvents Event@(totalEvents != 1 ? "s" : "") Listed</span>
         </div>
         <div class="events-search">
             <i class="fa-solid fa-magnifying-glass"></i>
@@ -17,55 +28,78 @@
         </div>
     </div>
 
+    <!-- EVENTS LIST -->
     <div class="events-grid" id="eventsGrid">
         @foreach (var ev in Model.Events)
         {
             <div class="event-card" data-title="@ev.Title.ToLower()">
-                <img src="/@ev.ImagePath" alt="@ev.Title" />
-                <div class="event-body">
+                <div class="event-img-wrap">
+                    <img src="/@ev.ImagePath?v=@DateTime.Now.Ticks" alt="@ev.Title" />
                     <span class="event-badge">@ev.Badge</span>
-                    <h3>@ev.Title</h3>
-                    <p class="event-date"><i class="fa-regular fa-calendar"></i> @ev.EventDate</p>
-                    <p class="event-desc">@ev.Description</p>
-                    <div class="event-meta">
-                        <span><i class="fa-solid fa-location-dot"></i> @ev.Location</span>
-                        <span><i class="fa-solid fa-users"></i> @ev.Capacity seats</span>
-                        @if (ev.Price > 0)
-                        {
-                            <span><i class="fa-solid fa-tag"></i> $@ev.Price.ToString("0.##")</span>
-                        }
-                        else
-                        {
-                            <span><i class="fa-solid fa-tag"></i> Free</span>
-                        }
+                </div>
+                <div class="event-body">
+                    <div class="event-body-top">
+                        <h3>@ev.Title</h3>
+                        <p class="event-date">
+                            <i class="fa-regular fa-calendar"></i>
+                            @ev.EventDate
+                        </p>
+                        <p class="event-desc">@ev.Description</p>
                     </div>
-                    <a href="/BookEvent/@ev.EventId" class="btn-reserve">Reserve a Spot</a>
+                    <div class="event-footer">
+                        <div class="event-meta">
+                            <span class="meta-pill">
+                                <i class="fa-solid fa-location-dot"></i> @ev.Location
+                            </span>
+                            <span class="meta-pill">
+                                <i class="fa-solid fa-users"></i> @ev.Capacity seats
+                            </span>
+                            <span class="meta-pill meta-pill-price">
+                                @if (ev.Price > 0)
+                                {
+                                    <i class="fa-solid fa-tag"></i>
+                                    <text>$@ev.Price.ToString("0.##")</text>
+                                }
+                                else
+                                {
+                                    <i class="fa-solid fa-gift"></i>
+                                    <text>Free</text>
+                                }
+                            </span>
+                        </div>
+                        <a href="/BookEvent/@ev.EventId" class="btn-reserve">
+                            <i class="fa-solid fa-ticket"></i> Reserve a Spot
+                        </a>
+                    </div>
                 </div>
             </div>
         }
     </div>
-    <p class="events-no-results" id="noResults" style="display:none">No events match your search.</p>
+
+    <p class="events-no-results" id="noResults" style="display:none">
+        <i class="fa-solid fa-calendar-xmark"></i> No events match your search.
+    </p>
 </div>
 
 <!-- FOOTER -->
 <footer class="events-footer">
     <div class="footer-inner">
         <div class="footer-col">
-            <h3><i class="fa-solid fa-building fa-sm" style="color:#b07a2a"></i> Grand Haven</h3>
+            <h3><i class="fa-solid fa-hotel"></i> Grand Haven</h3>
             <p>Experience luxury and comfort in the heart of the city. Your perfect getaway awaits.</p>
         </div>
         <div class="footer-col">
             <h4>Contact</h4>
-            <p><i class="fa-solid fa-phone" style="color:#b07a2a"></i> +250791375079</p>
-            <p><i class="fa-solid fa-envelope" style="color:#b07a2a"></i> info@grandhaven.com</p>
-            <p><i class="fa-solid fa-location-dot" style="color:#b07a2a"></i> Kigali, Rwanda</p>
+            <p><i class="fa-solid fa-phone"></i> +250 791 375 079</p>
+            <p><i class="fa-solid fa-envelope"></i> info@grandhaven.com</p>
+            <p><i class="fa-solid fa-location-dot"></i> Kigali, Rwanda</p>
         </div>
         <div class="footer-col">
             <h4>Quick Links</h4>
-            <p><a href="/Index">Home</a></p>
-            <p><a href="/Rooms">Our Rooms</a></p>
-            <p><a href="/Events">Events</a></p>
-            <p><a href="/Contact">Contact</a></p>
+            <a href="/Index">Home</a>
+            <a href="/Rooms">Our Rooms</a>
+            <a href="/Events">Events</a>
+            <a href="/Contact">Contact</a>
         </div>
     </div>
     <div class="footer-bottom">

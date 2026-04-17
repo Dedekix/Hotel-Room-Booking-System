@@ -3,41 +3,56 @@
 @{
     ViewData["Title"] = "Rooms";
     var types = Model.Rooms.Select(r => r.Type).Distinct().OrderBy(t => t).ToList();
+    int availableCount = Model.Rooms.Count(r => r.DisplayStatus == "Available");
 }
 <link rel="stylesheet" href="~/css/Rooms.css" />
 
+<!-- HERO BANNER -->
+<div class="rooms-hero">
+    <div class="rooms-hero-overlay">
+        <span class="rooms-tag"><i class="fa-solid fa-bed"></i> Accommodations</span>
+        <h1>Find Your Perfect Room</h1>
+        <p>@availableCount room@(availableCount != 1 ? "s" : "") available right now &mdash; from cozy singles to lavish suites</p>
+    </div>
+</div>
+
 <div class="rooms-page">
-    <div class="rooms-header">
-        <h1>Our Rooms</h1>
-        <p>Find the perfect room for your stay</p>
+    <!-- FILTER BAR -->
+    <div class="filter-bar">
+        <div class="filter-tabs">
+            <button class="filter-btn active" data-filter="all">
+                <i class="fa-solid fa-border-all"></i> All
+                <span class="filter-count">@Model.Rooms.Count</span>
+            </button>
+            @foreach (var t in types)
+            {
+                int count = Model.Rooms.Count(r => r.Type == t);
+                <button class="filter-btn" data-filter="@t">
+                    @t <span class="filter-count">@count</span>
+                </button>
+            }
+        </div>
     </div>
 
-    <div class="filter-tabs">
-        <button class="filter-btn active" data-filter="all">All Rooms</button>
-        @foreach (var t in types)
-        {
-            <button class="filter-btn" data-filter="@t">@t</button>
-        }
-    </div>
-
+    <!-- ROOMS GRID -->
     <div class="rooms-grid" id="roomsGrid">
         @foreach (var room in Model.Rooms)
         {
             bool unavailable = room.DisplayStatus != "Available";
-
-            <div class="room-card" data-type="@room.Type" style="display:flex">
+            <div class="room-card @(unavailable ? "room-card-unavailable" : "")" data-type="@room.Type" style="display:flex">
                 <div class="room-img-wrap">
-                    <span class="room-badge">@room.Type</span>
+                    <span class="room-type-badge">@room.Type</span>
                     <img src="/@room.ImagePath" alt="Room @room.RoomNumber" />
                     @if (unavailable)
                     {
                         <div class="room-overlay">
+                            <i class="fa-regular fa-calendar-xmark"></i>
                             <span class="overlay-status">@room.DisplayStatus.ToUpper()</span>
                             @if (room.AvailableFrom.HasValue)
                             {
                                 <span class="overlay-available">
-                                    <i class="fa-regular fa-calendar"></i>
-                                    Available @room.AvailableFrom.Value.ToString("MMM d, yyyy")
+                                    <i class="fa-regular fa-calendar-check"></i>
+                                    Free from @room.AvailableFrom.Value.ToString("MMM d, yyyy")
                                 </span>
                             }
                         </div>
@@ -46,24 +61,29 @@
                 <div class="room-body">
                     <div class="room-title-row">
                         <h3>Room @room.RoomNumber</h3>
-                        <span class="room-price">
-                            <span class="dollar">$</span>@room.PricePerNight.ToString("0.##")<span class="per">/night</span>
-                        </span>
+                        <div class="room-price">
+                            <span class="price-amount">$@room.PricePerNight.ToString("0.##")</span>
+                            <span class="price-per">/night</span>
+                        </div>
                     </div>
                     <p class="room-desc">@room.Description</p>
                     <div class="room-amenities">
-                        <span><i class="fa-solid fa-user-group"></i> @room.Capacity</span>
-                        <span><i class="fa-solid fa-wifi"></i> Wi-Fi</span>
-                        <span><i class="fa-solid fa-tv"></i> TV</span>
-                        <span><i class="fa-solid fa-wind"></i> AC</span>
+                        <span class="amenity-pill"><i class="fa-solid fa-user-group"></i> @room.Capacity Guest@(room.Capacity > 1 ? "s" : "")</span>
+                        <span class="amenity-pill"><i class="fa-solid fa-wifi"></i> Wi-Fi</span>
+                        <span class="amenity-pill"><i class="fa-solid fa-tv"></i> TV</span>
+                        <span class="amenity-pill"><i class="fa-solid fa-wind"></i> AC</span>
                     </div>
                     @if (unavailable)
                     {
-                        <button class="btn-book unavailable" disabled>Unavailable</button>
+                        <button class="btn-book btn-book-unavailable" disabled>
+                            <i class="fa-solid fa-ban"></i> Unavailable
+                        </button>
                     }
                     else
                     {
-                        <a href="/BookRoom/@room.RoomId" class="btn-book">Book Now</a>
+                        <a href="/BookRoom/@room.RoomId" class="btn-book">
+                            <i class="fa-solid fa-calendar-plus"></i> Book Now
+                        </a>
                     }
                 </div>
             </div>
@@ -75,25 +95,25 @@
 <footer class="rooms-footer">
     <div class="footer-inner">
         <div class="footer-col">
-            <h3><i class="fa-solid fa-building fa-sm" style="color:#b07a2a"></i> Grand Haven</h3>
+            <h3><i class="fa-solid fa-hotel"></i> Grand Haven</h3>
             <p>Experience luxury and comfort in the heart of the city. Your perfect getaway awaits.</p>
         </div>
         <div class="footer-col">
             <h4>Contact</h4>
-            <p><i class="fa-solid fa-phone" style="color:#b07a2a"></i> +250791375079</p>
-            <p><i class="fa-solid fa-envelope" style="color:#b07a2a"></i> info@grandhaven.com</p>
-            <p><i class="fa-solid fa-location-dot" style="color:#b07a2a"></i> Kigali, Rwanda</p>
+            <p><i class="fa-solid fa-phone"></i> +250 791 375 079</p>
+            <p><i class="fa-solid fa-envelope"></i> info@grandhaven.com</p>
+            <p><i class="fa-solid fa-location-dot"></i> Kigali, Rwanda</p>
         </div>
         <div class="footer-col">
             <h4>Quick Links</h4>
-            <p><a href="#">About Us</a></p>
-            <p><a href="/Rooms">Our Rooms</a></p>
-            <p><a href="/Events">Events</a></p>
-            <p><a href="/Contact">Contact</a></p>
+            <a href="/Rooms">Our Rooms</a>
+            <a href="/Events">Events</a>
+            <a href="/Contact">Contact</a>
+            <a href="/Login">Login</a>
         </div>
     </div>
     <div class="footer-bottom">
-        <p>© 2026 Grand Haven Hotel. All rights reserved.</p>
+        <p>&copy; 2026 Grand Haven Hotel. All rights reserved.</p>
     </div>
 </footer>
 

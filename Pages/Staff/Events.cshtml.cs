@@ -13,8 +13,9 @@ namespace HotelBookingSystem.Pages.Staff
         public string  Location      { get; set; } = "";
         public int     Capacity      { get; set; }
         public decimal Price         { get; set; }
-        public int     BookingCount  { get; set; }
-        public int     CancelledCount { get; set; }
+        public int     BookingCount   { get; set; }
+        public int     CancelledCount  { get; set; }
+        public string  ImagePath       { get; set; } = "";
         public int     AvailableSpots => Capacity - BookingCount;
     }
 
@@ -31,6 +32,7 @@ namespace HotelBookingSystem.Pages.Staff
         {
             var role = HttpContext.Session.GetString("UserRole");
             if (role != "ADMIN") { Response.Redirect("/Login?returnUrl=/Staff/Events"); return; }
+            if (TempData["SuccessMessage"] is string msg) SuccessMessage = msg;
             LoadEvents();
         }
 
@@ -78,13 +80,27 @@ namespace HotelBookingSystem.Pages.Staff
         }
 
         public IActionResult OnPostEdit(int eventId, string title, string description,
-            DateTime eventDate, string location, int capacity, decimal price)
+            DateTime eventDate, string location, int capacity, decimal price, IFormFile? imageFile)
         {
             using var conn = new SqlConnection(_conn);
             conn.Open();
 
-            string update = @"UPDATE Events SET title=@title, description=@desc, eventDate=@date,
-                              location=@loc, capacity=@cap, price=@price WHERE eventId=@id";
+            string imagePath = "";
+            if (imageFile != null && imageFile.Length > 0)
+            {
+                var fileName = Path.GetFileName(imageFile.FileName);
+                var savePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Images", fileName);
+                using var stream = new FileStream(savePath, FileMode.Create, FileAccess.Write, FileShare.Read);
+                imageFile.CopyTo(stream);
+                imagePath = $"Images/{fileName}";
+            }
+
+            string update = imagePath != ""
+                ? @"UPDATE Events SET title=@title, description=@desc, eventDate=@date,
+                    location=@loc, capacity=@cap, price=@price, imagePath=@img WHERE eventId=@id"
+                : @"UPDATE Events SET title=@title, description=@desc, eventDate=@date,
+                    location=@loc, capacity=@cap, price=@price WHERE eventId=@id";
+
             using var cmd = new SqlCommand(update, conn);
             cmd.Parameters.AddWithValue("@title", title);
             cmd.Parameters.AddWithValue("@desc",  description ?? "");
@@ -93,11 +109,11 @@ namespace HotelBookingSystem.Pages.Staff
             cmd.Parameters.AddWithValue("@cap",   capacity);
             cmd.Parameters.AddWithValue("@price", price);
             cmd.Parameters.AddWithValue("@id",    eventId);
+            if (imagePath != "") cmd.Parameters.AddWithValue("@img", imagePath);
             cmd.ExecuteNonQuery();
 
-            SuccessMessage = $"Event \"{title}\" updated successfully.";
-            LoadEvents();
-            return Page();
+            TempData["SuccessMessage"] = $"Event \"{title}\" updated successfully.";
+            return RedirectToPage();
         }
 
         public IActionResult OnPostDelete(int eventId)
@@ -128,7 +144,7 @@ namespace HotelBookingSystem.Pages.Staff
             conn.Open();
 
             string sql = @"
-                SELECT e.eventId, e.title, e.description, e.eventDate, e.location, e.capacity, e.price,
+                SELECT e.eventId, e.title, e.description, e.eventDate, e.location, e.capacity, e.price, e.imagePath,
                        (SELECT COUNT(*) FROM EventBookings eb
                         WHERE eb.eventId = e.eventId AND eb.status != 'CANCELLED') AS bookingCount,
                        (SELECT COUNT(*) FROM EventBookings eb
@@ -149,8 +165,9 @@ namespace HotelBookingSystem.Pages.Staff
                     Location     = reader["location"].ToString()!,
                     Capacity     = (int)reader["capacity"],
                     Price        = (decimal)reader["price"],
-                    BookingCount  = (int)reader["bookingCount"],
-                    CancelledCount = (int)reader["cancelledCount"]
+                    BookingCount   = (int)reader["bookingCount"],
+                    CancelledCount = (int)reader["cancelledCount"],
+                    ImagePath      = reader["imagePath"]?.ToString() ?? ""
                 });
             }
         }

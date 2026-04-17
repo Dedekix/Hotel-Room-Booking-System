@@ -20,33 +20,89 @@ h1, h2, h3 {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 15px 80px;
+    padding: 0 80px;
+    height: 64px;
     background: white;
     border-bottom: 1px solid #eee;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 900;
+    transition: box-shadow 0.3s, background 0.3s;
+}
+
+.navbar.nav-scrolled {
+    box-shadow: 0 4px 24px rgba(0,0,0,0.1);
+    background: rgba(255,255,255,0.97);
+    backdrop-filter: blur(8px);
 }
 
 .logo {
-    font-weight: bold;
-    color: #b07a2a;
-    font-size: 18px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
 }
 
+.logo-mark {
+    width: 46px;
+    height: 46px;
+    flex-shrink: 0;
+    filter: drop-shadow(0 3px 8px rgba(176,122,42,0.4));
+    transition: transform 0.3s, filter 0.3s;
+}
+
+.logo:hover .logo-mark {
+    transform: translateY(-2px);
+    filter: drop-shadow(0 6px 14px rgba(176,122,42,0.55));
+}
+
+.logo-text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1;
+    gap: 4px;
+}
+
+.logo-name {
+    font-size: 18px;
+    font-weight: 800;
+    color: #1a1a1a;
+    letter-spacing: -0.5px;
+    font-family: 'Georgia', serif;
+}
+
+.logo-tagline {
+    font-size: 9px;
+    font-weight: 700;
+    color: #b07a2a;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+}
+
+.nav-center { display: flex; align-items: center; }
+
 .nav-center a {
-    margin: 0 15px;
+    margin: 0 14px;
     text-decoration: none;
-    color: #333;
+    color: #444;
     font-weight: 500;
+    font-size: 14px;
+    padding: 4px 0;
+    border-bottom: 2px solid transparent;
+    transition: color 0.2s, border-color 0.2s;
+}
+
+.nav-center a:hover, .nav-center a.nav-active {
+    color: #b07a2a;
+    border-bottom-color: #b07a2a;
 }
 
 .nav-right {
     display: flex;
     align-items: center;
-    gap: 15px;
-}
-
-.login-link {
-    text-decoration: none;
-    color: #333;
+    gap: 10px;
 }
 
 .user-greeting {
@@ -58,13 +114,37 @@ h1, h2, h3 {
     color: #b07a2a;
 }
 
-.staff-btn {
+.nav-btn {
+    padding: 7px 16px;
+    border-radius: 7px;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+}
+
+.nav-btn-outline {
+    color: #444;
+    border: 1.5px solid #ddd;
+    background: white;
+}
+
+.nav-btn-outline:hover { border-color: #b07a2a; color: #b07a2a; }
+
+.nav-btn-gold {
     background: #b07a2a;
     color: white;
-    border: none;
-    padding: 8px 15px;
-    border-radius: 6px;
+    border: 1.5px solid #b07a2a;
 }
+
+.nav-btn-gold:hover { background: #9a6a22; border-color: #9a6a22; color: white; }
+
+/* keep old class working for other pages */
+.login-link { text-decoration: none; color: #333; }
+.staff-portal-link { text-decoration: none; color: #b07a2a; font-weight: 600; }
 
 /* Buttons */
 .btn-primary {

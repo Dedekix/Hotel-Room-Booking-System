@@ -151,7 +151,7 @@ namespace HotelBookingSystem.Pages
             var t when t.Contains("cinema")   => "Images/Rootop cinema.png",
             var t when t.Contains("talent")   => "Images/talent.jpg",
             var t when t.Contains("culture")  => "Images/culture.jpg",
-            _                                 => "Images/event-gala.jpg"
+            _                                 => "Images/Fashion.jpg"
         };
 
         private void LoadReservations()

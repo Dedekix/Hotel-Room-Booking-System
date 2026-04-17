@@ -4,48 +4,95 @@
     Layout = "_StaffLayout";
     ViewData["Title"] = "Events";
     ViewData["ActivePage"] = "Events";
+    int totalBooked    = Model.Events.Sum(e => e.BookingCount);
+    int totalAvailable = Model.Events.Sum(e => e.AvailableSpots);
+    int freeEvents     = Model.Events.Count(e => e.Price == 0);
 }
 
-<div class="rooms-mgmt-header">
-    <h1 class="staff-page-title" style="margin-bottom:0">Event Management</h1>
+<!-- PAGE HEADER -->
+<div class="dash-header">
+    <div>
+        <p class="dash-greeting">Admin Panel</p>
+        <h1 class="staff-page-title">Event Management</h1>
+        <p class="dash-date"><i class="fa-solid fa-calendar-star"></i> @Model.Events.Count event@(Model.Events.Count != 1 ? "s" : "") listed</p>
+    </div>
     <button class="btn-add-room" onclick="openAddModal()">
         <i class="fa-solid fa-plus"></i> Add Event
     </button>
 </div>
 
+<!-- SUMMARY PILLS -->
+<div class="rooms-summary">
+    <div class="summary-pill summary-pill-blue">
+        <i class="fa-solid fa-ticket"></i>
+        <span>@totalBooked Total Reservations</span>
+    </div>
+    <div class="summary-pill summary-pill-green">
+        <i class="fa-solid fa-users"></i>
+        <span>@totalAvailable Spots Available</span>
+    </div>
+    <div class="summary-pill summary-pill-gold">
+        <i class="fa-solid fa-gift"></i>
+        <span>@freeEvents Free Event@(freeEvents != 1 ? "s" : "")</span>
+    </div>
+</div>
+
+<!-- ALERTS -->
 @if (!string.IsNullOrEmpty(Model.ErrorMessage))
 {
-    <div class="staff-alert staff-alert-error">@Model.ErrorMessage</div>
+    <div class="staff-alert staff-alert-error"><i class="fa-solid fa-circle-exclamation"></i> @Model.ErrorMessage</div>
 }
 @if (!string.IsNullOrEmpty(Model.SuccessMessage))
 {
-    <div class="staff-alert staff-alert-success">@Model.SuccessMessage</div>
+    <div class="staff-alert staff-alert-success"><i class="fa-solid fa-circle-check"></i> @Model.SuccessMessage</div>
 }
 
+<!-- EVENTS GRID -->
 <div class="rooms-mgmt-grid">
     @foreach (var ev in Model.Events)
     {
-        <div class="room-mgmt-card">
-            <div class="room-mgmt-top">
-                <span class="room-mgmt-name">@ev.Title</span>
-                <span class="badge-available">@ev.BookingCount booked</span>
+        int filledPercent = ev.Capacity > 0 ? (int)((double)ev.BookingCount / ev.Capacity * 100) : 0;
+
+        <div class="room-mgmt-card event-mgmt-card">
+            <!-- Image -->
+            <div class="event-mgmt-img-wrap">
+                <img src="/@ev.ImagePath?v=@DateTime.Now.Ticks" alt="@ev.Title" />
+                <span class="event-mgmt-price-tag">
+                    @(ev.Price == 0 ? "Free" : "$" + ev.Price.ToString("0.##"))
+                </span>
             </div>
-            <div class="room-mgmt-sub">@ev.Location · @ev.EventDate.ToString("MMM d, yyyy h:mm tt")</div>
-            <div class="room-mgmt-price">@(ev.Price == 0 ? "Free" : "$" + ev.Price.ToString("0.##"))</div>
-            <div class="room-mgmt-sub" style="margin-bottom:14px">
-                Capacity: @ev.Capacity &nbsp;·&nbsp;
-                <span style="color:#2e7d52">@ev.AvailableSpots available</span> &nbsp;·&nbsp;
-                <span style="color:#c62828">@ev.CancelledCount dropped</span>
+
+            <div class="room-mgmt-card-header" style="margin-top:4px">
+                <span class="room-mgmt-number" style="font-size:15px">@ev.Title</span>
+                <span class="badge-available"><i class="fa-solid fa-ticket"></i> @ev.BookingCount</span>
             </div>
+
+            <div class="event-mgmt-meta">
+                <span><i class="fa-regular fa-calendar"></i> @ev.EventDate.ToString("MMM d, yyyy h:mm tt")</span>
+                <span><i class="fa-solid fa-location-dot"></i> @ev.Location</span>
+            </div>
+
+            <!-- Capacity bar -->
+            <div class="event-capacity-wrap">
+                <div class="event-capacity-bar-track">
+                    <div class="event-capacity-bar-fill" style="width:@filledPercent%"></div>
+                </div>
+                <div class="event-capacity-labels">
+                    <span class="capacity-booked">@ev.BookingCount booked</span>
+                    <span class="capacity-available">@ev.AvailableSpots left</span>
+                </div>
+            </div>
+
             <div class="room-mgmt-actions">
-                <button class="btn-edit" onclick="openEditModal(@ev.EventId, '@Html.Raw(ev.Title.Replace("'", "\\'"))', '@Html.Raw(ev.Description.Replace("'", "\\'"))', '@ev.EventDate.ToString("yyyy-MM-ddTHH:mm")', '@Html.Raw(ev.Location.Replace("'", "\\'"))', @ev.Capacity, @ev.Price)">
-                    Edit
+                <button class="btn-edit"
+                    onclick="openEditModal(@ev.EventId, '@Html.Raw(ev.Title.Replace("'", "\\'"))', '@Html.Raw(ev.Description.Replace("'", "\\'"))', '@ev.EventDate.ToString("yyyy-MM-ddTHH:mm")', '@Html.Raw(ev.Location.Replace("'", "\\'"))', @ev.Capacity, @ev.Price, '@ev.ImagePath')">
+                    <i class="fa-solid fa-pen"></i> Edit
                 </button>
                 <form method="post" asp-page-handler="Delete" style="margin:0" id="del-form-@ev.EventId">
                     <input type="hidden" name="eventId" value="@ev.EventId" />
-                    <button type="button" class="btn-key" title="Delete Event"
-                        onclick="ghConfirm(event, 'Are you sure you want to delete the event &quot;@ev.Title&quot;? This cannot be undone.', () => document.getElementById('del-form-@ev.EventId').submit())">
-                        <i class="fa-solid fa-trash"></i>
+                    <button type="button" class="btn-toggle btn-toggle-maintenance"
+                        onclick="ghConfirm(event, 'Delete &quot;@ev.Title&quot;? This cannot be undone.', () => document.getElementById('del-form-@ev.EventId').submit())">
+                        <i class="fa-solid fa-trash"></i> Delete
                     </button>
                 </form>
             </div>
@@ -53,11 +100,11 @@
     }
 </div>
 
-<!-- ── Add Event Modal ── -->
+<!-- ADD MODAL -->
 <div class="modal-backdrop" id="addModal" style="display:none">
     <div class="modal-card">
         <div class="modal-header">
-            <h3>Add New Event</h3>
+            <h3><i class="fa-solid fa-plus"></i> Add New Event</h3>
             <button class="modal-close" onclick="closeModal('addModal')">&times;</button>
         </div>
         <form method="post" asp-page-handler="Add" enctype="multipart/form-data">
@@ -97,20 +144,39 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn-modal-cancel" onclick="closeModal('addModal')">Cancel</button>
-                <button type="submit" class="btn-modal-confirm">Add Event</button>
+                <button type="submit" class="btn-modal-confirm"><i class="fa-solid fa-plus"></i> Add Event</button>
             </div>
         </form>
     </div>
 </div>
 
-<!-- ── Edit Event Modal ── -->
+<!-- CONFIRM EDIT DIALOG -->
+<div class="modal-backdrop modal-backdrop-top" id="confirmEditModal" style="display:none">
+    <div class="modal-card" style="max-width:400px">
+        <div class="modal-header">
+            <h3><i class="fa-solid fa-triangle-exclamation" style="color:#b07a2a"></i> Confirm Edit</h3>
+            <button class="modal-close" onclick="closeModal('confirmEditModal')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p style="font-size:14px;color:#555">Are you sure you want to save changes to <strong id="confirmEventTitle"></strong>?</p>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn-modal-cancel" onclick="closeModal('confirmEditModal')">Cancel</button>
+            <button type="button" class="btn-modal-confirm" onclick="document.getElementById('editForm').submit()">
+                <i class="fa-solid fa-floppy-disk"></i> Confirm
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- EDIT MODAL -->
 <div class="modal-backdrop" id="editModal" style="display:none">
     <div class="modal-card">
         <div class="modal-header">
-            <h3>Edit Event</h3>
+            <h3><i class="fa-solid fa-pen"></i> Edit Event</h3>
             <button class="modal-close" onclick="closeModal('editModal')">&times;</button>
         </div>
-        <form method="post" asp-page-handler="Edit">
+        <form method="post" asp-page-handler="Edit" enctype="multipart/form-data" id="editForm">
             <input type="hidden" name="eventId" id="editEventId" />
             <div class="modal-body">
                 <div class="mform-group">
@@ -141,10 +207,17 @@
                     <label>Description</label>
                     <textarea name="description" id="editDescription" rows="2"></textarea>
                 </div>
+                <div class="mform-group">
+                    <label>Change Image <span style="color:#aaa;font-weight:400">(optional)</span></label>
+                    <input type="file" name="imageFile" accept="image/*" />
+                    <small style="color:#aaa;margin-top:4px;display:block">Current: <span id="editCurrentImage"></span></small>
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn-modal-cancel" onclick="closeModal('editModal')">Cancel</button>
-                <button type="submit" class="btn-modal-confirm">Save Changes</button>
+                <button type="button" class="btn-modal-confirm" onclick="showEditConfirm()">
+                    <i class="fa-solid fa-floppy-disk"></i> Save Changes
+                </button>
             </div>
         </form>
     </div>
@@ -152,23 +225,24 @@
 
 @section Scripts {
 <script>
-    function openAddModal() {
-        document.getElementById('addModal').style.display = 'flex';
-    }
+    function openAddModal() { document.getElementById('addModal').style.display = 'flex'; }
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
-    function openEditModal(id, title, desc, date, location, capacity, price) {
-        document.getElementById('editEventId').value    = id;
-        document.getElementById('editTitle').value      = title;
-        document.getElementById('editDescription').value = desc;
-        document.getElementById('editDate').value       = date;
-        document.getElementById('editLocation').value   = location;
-        document.getElementById('editCapacity').value   = capacity;
-        document.getElementById('editPrice').value      = price;
+    function openEditModal(id, title, desc, date, location, capacity, price, imagePath) {
+        document.getElementById('editEventId').value      = id;
+        document.getElementById('editTitle').value        = title;
+        document.getElementById('editDescription').value  = desc;
+        document.getElementById('editDate').value         = date;
+        document.getElementById('editLocation').value     = location;
+        document.getElementById('editCapacity').value     = capacity;
+        document.getElementById('editPrice').value        = price;
+        document.getElementById('editCurrentImage').textContent = imagePath;
         document.getElementById('editModal').style.display = 'flex';
     }
 
-    function closeModal(id) {
-        document.getElementById(id).style.display = 'none';
+    function showEditConfirm() {
+        document.getElementById('confirmEventTitle').textContent = document.getElementById('editTitle').value;
+        document.getElementById('confirmEditModal').style.display = 'flex';
     }
 
     document.querySelectorAll('.modal-backdrop').forEach(el => {

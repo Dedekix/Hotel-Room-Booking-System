@@ -15,16 +15,37 @@
 </head>
 <body>
     <header>
-        <nav class="navbar">
+        <nav class="navbar" id="mainNav">
             <div class="nav-left">
-                <a href="/Index" class="logo">🏨 Grand Haven</a>
+                <a href="/Index" class="logo">
+                    <svg class="logo-mark" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <!-- Outer shield -->
+                        <path d="M26 3 L46 12 L46 30 Q46 42 26 50 Q6 42 6 30 L6 12 Z" fill="#1a1a1a"/>
+                        <!-- Inner shield highlight -->
+                        <path d="M26 8 L42 16 L42 30 Q42 40 26 47 Q10 40 10 30 L10 16 Z" fill="none" stroke="#b07a2a" stroke-width="1"/>
+                        <!-- Crown top -->
+                        <path d="M18 20 L20 15 L26 19 L32 15 L34 20 Z" fill="#f0a94b"/>
+                        <rect x="17" y="20" width="18" height="2" rx="1" fill="#f0a94b"/>
+                        <!-- Building body -->
+                        <rect x="19" y="22" width="14" height="12" rx="1" fill="white" opacity="0.12"/>
+                        <!-- Door -->
+                        <rect x="23" y="28" width="6" height="6" rx="0.8" fill="#f0a94b"/>
+                        <!-- Windows -->
+                        <rect x="20" y="24" width="4" height="3" rx="0.5" fill="#f0a94b" opacity="0.7"/>
+                        <rect x="28" y="24" width="4" height="3" rx="0.5" fill="#f0a94b" opacity="0.7"/>
+                    </svg>
+                    <span class="logo-text">
+                        <span class="logo-name">Grand Haven</span>
+                        <span class="logo-tagline">&#x2605; Luxury Hotel &#x2605;</span>
+                    </span>
+                </a>
             </div>
 
             <div class="nav-center">
-                <a href="/Index">Home</a>
+                <a href="/Index" class="@(ViewData["Title"]?.ToString() == "Home page" ? "nav-active" : "")">Home</a>
                 <a href="/Rooms" class="@(ViewData["Title"]?.ToString() == "Rooms" ? "nav-active" : "")">Rooms</a>
-                <a href="/Events">Events</a>
-                <a href="/Contact">Contact</a>
+                <a href="/Events" class="@(ViewData["Title"]?.ToString() == "Events" ? "nav-active" : "")">Events</a>
+                <a href="/Contact" class="@(ViewData["Title"]?.ToString() == "Contact" ? "nav-active" : "")">Contact</a>
             </div>
 
             <div class="nav-right">
@@ -42,21 +63,26 @@
                     </span>
                     @if (_role != "STAFF" && _role != "ADMIN")
                     {
-                        <a href="/MyBookings" class="login-link">My Bookings</a>
+                        <a href="/MyBookings" class="nav-btn nav-btn-outline"><i class="fa-regular fa-calendar-check"></i> My Bookings</a>
                     }
-                    <a href="/Logout" class="login-link" onclick="ghConfirm(event, 'Are you sure you want to log out?', () => window.location.href='/Logout')">Logout</a>
+                    <a href="/Logout" class="nav-btn nav-btn-outline" onclick="ghConfirm(event, 'Are you sure you want to log out?', () => window.location.href='/Logout')">Logout</a>
                 }
                 else
                 {
-                    <a href="/Login" class="login-link"><i class="fa-regular fa-user"></i> Login</a>
+                    <a href="/Login" class="nav-btn nav-btn-outline"><i class="fa-regular fa-user"></i> Login</a>
                 }
                 @if (_role == "STAFF" || _role == "ADMIN" || string.IsNullOrEmpty(_role))
                 {
-                    <a href="@_portalHref" class="staff-portal-link">Personnel Portal</a>
+                    <a href="@_portalHref" class="nav-btn nav-btn-gold"><i class="fa-solid fa-key"></i> Portal</a>
                 }
             </div>
         </nav>
     </header>
+    <script>
+        window.addEventListener('scroll', function () {
+            document.getElementById('mainNav').classList.toggle('nav-scrolled', window.scrollY > 40);
+        });
+    </script>
     <main role="main">
         @RenderBody()
     </main>

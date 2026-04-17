@@ -4,24 +4,50 @@
     Layout = "_StaffLayout";
     ViewData["Title"] = "Rooms";
     ViewData["ActivePage"] = "Rooms";
+    int available    = Model.Rooms.Count(r => r.DisplayStatus == "Available");
+    int occupied     = Model.Rooms.Count(r => r.DisplayStatus == "Occupied");
+    int maintenance  = Model.Rooms.Count(r => r.DisplayStatus == "Maintenance");
 }
 
-<div class="rooms-mgmt-header">
-    <h1 class="staff-page-title" style="margin-bottom:0">Room Management</h1>
+<!-- PAGE HEADER -->
+<div class="dash-header">
+    <div>
+        <p class="dash-greeting">Admin Panel</p>
+        <h1 class="staff-page-title">Room Management</h1>
+        <p class="dash-date"><i class="fa-solid fa-bed"></i> @Model.Rooms.Count total room@(Model.Rooms.Count != 1 ? "s" : "")</p>
+    </div>
     <button class="btn-add-room" onclick="openAddModal()">
         <i class="fa-solid fa-plus"></i> Add Room
     </button>
 </div>
 
+<!-- SUMMARY PILLS -->
+<div class="rooms-summary">
+    <div class="summary-pill summary-pill-green">
+        <i class="fa-solid fa-circle-check"></i>
+        <span>@available Available</span>
+    </div>
+    <div class="summary-pill summary-pill-blue">
+        <i class="fa-solid fa-bed"></i>
+        <span>@occupied Occupied</span>
+    </div>
+    <div class="summary-pill summary-pill-red">
+        <i class="fa-solid fa-wrench"></i>
+        <span>@maintenance Maintenance</span>
+    </div>
+</div>
+
+<!-- ALERTS -->
 @if (!string.IsNullOrEmpty(Model.ErrorMessage))
 {
-    <div class="staff-alert staff-alert-error">@Model.ErrorMessage</div>
+    <div class="staff-alert staff-alert-error"><i class="fa-solid fa-circle-exclamation"></i> @Model.ErrorMessage</div>
 }
 @if (!string.IsNullOrEmpty(Model.SuccessMessage))
 {
-    <div class="staff-alert staff-alert-success">@Model.SuccessMessage</div>
+    <div class="staff-alert staff-alert-success"><i class="fa-solid fa-circle-check"></i> @Model.SuccessMessage</div>
 }
 
+<!-- ROOMS GRID -->
 <div class="rooms-mgmt-grid">
     @foreach (var room in Model.Rooms)
     {
@@ -31,24 +57,48 @@
             "Occupied"    => "badge-occupied",
             _             => "badge-maintenance"
         };
+        var statusIcon = room.DisplayStatus switch
+        {
+            "Available"   => "fa-circle-check",
+            "Occupied"    => "fa-bed",
+            _             => "fa-wrench"
+        };
 
         <div class="room-mgmt-card">
-            <div class="room-mgmt-top">
-                <span class="room-mgmt-name">Room @room.RoomNumber</span>
-                <span class="@badgeClass">@room.DisplayStatus</span>
+            <div class="room-mgmt-card-header">
+                <div class="room-mgmt-number">
+                    <i class="fa-solid fa-door-open"></i>
+                    Room @room.RoomNumber
+                </div>
+                <span class="@badgeClass">
+                    <i class="fa-solid @statusIcon"></i> @room.DisplayStatus
+                </span>
             </div>
-            <div class="room-mgmt-sub">@room.Type · Max @room.Capacity Guests</div>
-            <div class="room-mgmt-price">$@room.PricePerNight.ToString("0.##")/night</div>
+
+            <div class="room-mgmt-type-row">
+                <span class="room-mgmt-type-tag">@room.Type</span>
+                <span class="room-mgmt-capacity"><i class="fa-solid fa-user-group"></i> Max @room.Capacity</span>
+            </div>
+
+            <p class="room-mgmt-desc">@(string.IsNullOrEmpty(room.Description) ? "No description provided." : room.Description)</p>
+
+            <div class="room-mgmt-price-row">
+                <span class="room-mgmt-price">$@room.PricePerNight.ToString("0.##")</span>
+                <span class="room-mgmt-per">/ night</span>
+            </div>
+
             <div class="room-mgmt-actions">
                 <button class="btn-edit" onclick="openEditModal(@room.RoomId, '@room.RoomNumber', '@room.Type', @room.PricePerNight, @room.Capacity, '@Html.Raw(room.Description.Replace("'", "\\'"))')">
-                    Edit
+                    <i class="fa-solid fa-pen"></i> Edit
                 </button>
                 <form method="post" asp-page-handler="Toggle" style="margin:0" id="toggle-form-@room.RoomId">
                     <input type="hidden" name="roomId" value="@room.RoomId" />
-                    <button type="button" class="btn-key"
+                    <button type="button"
+                        class="btn-toggle @(room.IsAvailable ? "btn-toggle-maintenance" : "btn-toggle-available")"
                         title="@(room.IsAvailable ? "Set Under Maintenance" : "Set Available")"
-                        onclick="ghConfirm(event, 'Are you sure you want to set Room @room.RoomNumber to @(room.IsAvailable ? "Under Maintenance" : "Available")?', () => document.getElementById('toggle-form-@room.RoomId').submit())">
-                        <i class="fa-solid fa-key"></i>
+                        onclick="ghConfirm(event, 'Set Room @room.RoomNumber to @(room.IsAvailable ? "Maintenance" : "Available")?', () => document.getElementById('toggle-form-@room.RoomId').submit())">
+                        <i class="fa-solid @(room.IsAvailable ? "fa-wrench" : "fa-circle-check")"></i>
+                        @(room.IsAvailable ? "Maintenance" : "Set Available")
                     </button>
                 </form>
             </div>
@@ -56,11 +106,11 @@
     }
 </div>
 
-<!-- ── Add Room Modal ── -->
+<!-- ADD MODAL -->
 <div class="modal-backdrop" id="addModal" style="display:none">
     <div class="modal-card">
         <div class="modal-header">
-            <h3>Add New Room</h3>
+            <h3><i class="fa-solid fa-plus"></i> Add New Room</h3>
             <button class="modal-close" onclick="closeModal('addModal')">&times;</button>
         </div>
         <form method="post" asp-page-handler="Add">
@@ -97,17 +147,17 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn-modal-cancel" onclick="closeModal('addModal')">Cancel</button>
-                <button type="submit" class="btn-modal-confirm">Add Room</button>
+                <button type="submit" class="btn-modal-confirm"><i class="fa-solid fa-plus"></i> Add Room</button>
             </div>
         </form>
     </div>
 </div>
 
-<!-- ── Edit Room Modal ── -->
+<!-- EDIT MODAL -->
 <div class="modal-backdrop" id="editModal" style="display:none">
     <div class="modal-card">
         <div class="modal-header">
-            <h3>Edit Room</h3>
+            <h3><i class="fa-solid fa-pen"></i> Edit Room</h3>
             <button class="modal-close" onclick="closeModal('editModal')">&times;</button>
         </div>
         <form method="post" asp-page-handler="Edit">
@@ -145,7 +195,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn-modal-cancel" onclick="closeModal('editModal')">Cancel</button>
-                <button type="submit" class="btn-modal-confirm">Save Changes</button>
+                <button type="submit" class="btn-modal-confirm"><i class="fa-solid fa-floppy-disk"></i> Save Changes</button>
             </div>
         </form>
     </div>
@@ -153,25 +203,19 @@
 
 @section Scripts {
 <script>
-    function openAddModal() {
-        document.getElementById('addModal').style.display = 'flex';
-    }
+    function openAddModal()  { document.getElementById('addModal').style.display  = 'flex'; }
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
     function openEditModal(id, number, type, price, capacity, desc) {
-        document.getElementById('editRoomId').value       = id;
-        document.getElementById('editRoomNumber').value   = number;
-        document.getElementById('editType').value         = type;
-        document.getElementById('editPrice').value        = price;
-        document.getElementById('editCapacity').value     = capacity;
-        document.getElementById('editDescription').value  = desc;
+        document.getElementById('editRoomId').value      = id;
+        document.getElementById('editRoomNumber').value  = number;
+        document.getElementById('editType').value        = type;
+        document.getElementById('editPrice').value       = price;
+        document.getElementById('editCapacity').value    = capacity;
+        document.getElementById('editDescription').value = desc;
         document.getElementById('editModal').style.display = 'flex';
     }
 
-    function closeModal(id) {
-        document.getElementById(id).style.display = 'none';
-    }
-
-    // Close on backdrop click
     document.querySelectorAll('.modal-backdrop').forEach(el => {
         el.addEventListener('click', e => { if (e.target === el) closeModal(el.id); });
     });
