@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Data.SqlClient;
 
-namespace HotelBookingSystem.Pages
+namespace HotelBookingSystem.Pages.Customer
 {
     public class RoomBookingItem
     {
@@ -38,7 +38,7 @@ namespace HotelBookingSystem.Pages
         {
             var userId = HttpContext.Session.GetString("UserId");
             if (string.IsNullOrEmpty(userId))
-                return Redirect("/Login?returnUrl=/MyBookings");
+                return Redirect("/Login?returnUrl=/Customer/MyBookings");
 
             using var conn = new SqlConnection(_conn);
             conn.Open();

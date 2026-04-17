@@ -1,5 +1,5 @@
 @page "{eventId:int}"
-@model HotelBookingSystem.Pages.BookEventModel
+@model HotelBookingSystem.Pages.Customer.BookEventModel
 @{
     ViewData["Title"] = "Book Event";
     int spotsPercent = Model.Capacity > 0 ? (int)((double)(Model.Capacity - Model.SpotsLeft) / Model.Capacity * 100) : 0;
@@ -48,7 +48,7 @@
                 <a href="/Events" class="btn-confirm" style="text-decoration:none">
                     <i class="fa-solid fa-calendar-days"></i> Browse More Events
                 </a>
-                <a href="/MyBookings" class="btn-confirm-outline" style="text-decoration:none">
+                <a href="/Customer/MyBookings" class="btn-confirm-outline" style="text-decoration:none">
                     <i class="fa-regular fa-calendar-check"></i> My Bookings
                 </a>
             </div>

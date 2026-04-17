@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Data.SqlClient;
 
-namespace HotelBookingSystem.Pages
+namespace HotelBookingSystem.Pages.Customer
 {
     public class BookRoomModel : PageModel
     {
@@ -26,7 +26,7 @@ namespace HotelBookingSystem.Pages
         public IActionResult OnGet(int roomId)
         {
             if (string.IsNullOrEmpty(HttpContext.Session.GetString("UserId")))
-                return Redirect($"/Login?returnUrl=/BookRoom/{roomId}");
+                return Redirect($"/Login?returnUrl=/Customer/BookRoom/{roomId}");
             if (!LoadRoom(roomId))
                 return RedirectToPage("/Rooms");
             LoggedInName = HttpContext.Session.GetString("UserFullName") ?? "";
@@ -46,7 +46,7 @@ namespace HotelBookingSystem.Pages
             int    guestCount)
         {
             if (string.IsNullOrEmpty(HttpContext.Session.GetString("UserId")))
-                return Redirect($"/Login?returnUrl=/BookRoom/{roomId}");
+                return Redirect($"/Login?returnUrl=/Customer/BookRoom/{roomId}");
 
             LoadRoom(roomId);
             LoggedInName = HttpContext.Session.GetString("UserFullName") ?? "";
@@ -129,7 +129,7 @@ namespace HotelBookingSystem.Pages
                 cmd.ExecuteNonQuery();
             }
 
-            return RedirectToPage("/BookingConfirmed");
+            return RedirectToPage("/Customer/BookingConfirmed");
         }
 
         private bool LoadRoom(int roomId)

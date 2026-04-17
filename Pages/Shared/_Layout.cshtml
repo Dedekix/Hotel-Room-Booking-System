@@ -63,7 +63,7 @@
                     </span>
                     @if (_role != "STAFF" && _role != "ADMIN")
                     {
-                        <a href="/MyBookings" class="nav-btn nav-btn-outline"><i class="fa-regular fa-calendar-check"></i> My Bookings</a>
+                        <a href="/Customer/MyBookings" class="nav-btn nav-btn-outline"><i class="fa-regular fa-calendar-check"></i> My Bookings</a>
                     }
                     <a href="/Logout" class="nav-btn nav-btn-outline" onclick="ghConfirm(event, 'Are you sure you want to log out?', () => window.location.href='/Logout')">Logout</a>
                 }

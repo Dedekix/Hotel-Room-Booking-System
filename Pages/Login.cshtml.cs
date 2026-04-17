@@ -85,7 +85,7 @@ namespace HotelBookingSystem.Pages
 
             _otpService.PublishOtp(Email, otp);
 
-            return RedirectToPage("/VerifyOtp", new { ReturnUrl });
+            return RedirectToPage("/Customer/VerifyOtp", new { ReturnUrl });
         }
     }
 }
