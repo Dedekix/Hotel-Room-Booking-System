@@ -9,7 +9,7 @@ This folder contains detailed implementation breakdowns for every feature in the
 | File | Feature |
 |------|---------|
 | [AUTHENTICATION.md](./AUTHENTICATION.md) | Signup, Login, Logout, Session management, Role-based access |
-| [OTP_EXPLAINED.md](../OTP_EXPLAINED.md) | OTP generation, ActiveMQ messaging, Gmail SMTP delivery |
+| [OTP_EXPLAINED.md](../OTP_EXPLAINED.md) ← (project root) | OTP generation, ActiveMQ messaging, Gmail SMTP delivery |
 | [ROOM_LISTING.md](./ROOM_LISTING.md) | Room availability display, status logic, image mapping |
 | [ROOM_BOOKING.md](./ROOM_BOOKING.md) | Booking flow, nightly vs hourly pricing, double-booking prevention |
 | [MY_BOOKINGS.md](./MY_BOOKINGS.md) | Customer booking history, event reservations, cancellation |
