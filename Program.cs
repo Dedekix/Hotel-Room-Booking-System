@@ -1,3 +1,6 @@
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
+using HotelBookingSystem.Services;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -5,6 +8,9 @@ builder.Services.AddRazorPages();
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession();
 builder.Services.AddSingleton(builder.Configuration.GetConnectionString("DefaultConnection")!);
+builder.Services.AddSingleton<ITempDataProvider, CookieTempDataProvider>();
+builder.Services.AddSingleton<OtpEmailService>();
+builder.Services.AddHostedService<OtpEmailConsumer>();
 
 var app = builder.Build();
 
