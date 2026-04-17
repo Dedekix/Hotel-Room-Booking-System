@@ -34,17 +34,27 @@ namespace HotelBookingSystem.Pages
             using var reader = cmd.ExecuteReader();
             while (reader.Read())
             {
-                var date = (DateTime)reader["eventDate"];
+                var date  = (DateTime)reader["eventDate"];
+                var title = reader["title"].ToString()!;
+                var image = !string.IsNullOrEmpty(reader["imagePath"]?.ToString())
+                    ? reader["imagePath"].ToString()!
+                    : title.ToLower() switch
+                    {
+                        var t when t.Contains("gala")   => "Images/event-gala.jpg",
+                        var t when t.Contains("spa")    => "Images/event-spa.jpg",
+                        var t when t.Contains("brunch") => "Images/event-gala.jpg",
+                        _                               => "Images/event-spa.jpg"
+                    };
                 Events.Add(new HomeEventItem
                 {
                     EventId     = (int)reader["eventId"],
-                    Title       = reader["title"].ToString()!,
+                    Title       = title,
                     Description = reader["description"]?.ToString() ?? "",
                     EventDate   = date.ToString("MMM d, yyyy"),
                     Location    = reader["location"].ToString()!,
                     Capacity    = (int)reader["capacity"],
                     Price       = (decimal)reader["price"],
-                    ImagePath   = reader["imagePath"].ToString()!,
+                    ImagePath   = image,
                     Badge       = date.ToString("MMMM")
                 });
             }

@@ -152,3 +152,6 @@ INSERT INTO EventBookings (eventId, userId, status) VALUES
 (2, 3, 'CONFIRMED'),
 (3, 4, 'CONFIRMED'),
 (4, 2, 'CONFIRMED');
+
+
+ALTER TABLE Events ADD imagePath NVARCHAR(255) NULL;

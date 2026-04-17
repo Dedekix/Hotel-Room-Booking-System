@@ -116,7 +116,7 @@ namespace HotelBookingSystem.Pages
         {
             using var conn = new SqlConnection(_conn);
             conn.Open();
-            string sql = "SELECT eventId, title, description, eventDate, location, capacity, price FROM Events ORDER BY eventDate";
+            string sql = "SELECT eventId, title, description, eventDate, location, capacity, price, imagePath FROM Events ORDER BY eventDate";
             using var cmd    = new SqlCommand(sql, conn);
             using var reader = cmd.ExecuteReader();
 
@@ -134,7 +134,9 @@ namespace HotelBookingSystem.Pages
                     Location    = reader["location"].ToString()!,
                     Capacity    = (int)reader["capacity"],
                     Price       = (decimal)reader["price"],
-                    ImagePath   = GetEventImage(title),
+                    ImagePath   = !string.IsNullOrEmpty(reader["imagePath"]?.ToString())
+                                    ? reader["imagePath"].ToString()!
+                                    : GetEventImage(title),
                     Badge       = date.ToString("MMMM")
                 });
             }
