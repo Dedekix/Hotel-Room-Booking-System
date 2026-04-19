@@ -101,16 +101,23 @@ namespace HotelBookingSystem.Pages.Customer
             }
 
             // Insert booking
+            int newEventBookingId;
             using (var cmd = new SqlCommand(
-                "INSERT INTO EventBookings (eventId, userId, status) VALUES (@eid, @uid, 'CONFIRMED')", conn))
+                "INSERT INTO EventBookings (eventId, userId, status) OUTPUT INSERTED.eventBookingId VALUES (@eid, @uid, 'PENDING')", conn))
             {
                 cmd.Parameters.AddWithValue("@eid", eventId);
                 cmd.Parameters.AddWithValue("@uid", uid);
-                cmd.ExecuteNonQuery();
+                newEventBookingId = (int)cmd.ExecuteScalar();
             }
 
-            Confirmed = true;
-            return Page();
+            // Free events skip payment
+            if (Price == 0)
+            {
+                Confirmed = true;
+                return Page();
+            }
+
+            return RedirectToPage("/Customer/Payment", new { type = "EVENT", id = newEventBookingId });
         }
 
         private bool LoadEvent(int eventId)

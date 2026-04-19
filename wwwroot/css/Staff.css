@@ -633,6 +633,7 @@
 .badge-confirmed  { color: #555;    border-color: #bbb;    background: transparent; }
 .badge-completed  { color: #555;    border-color: #bbb;    background: transparent; }
 .badge-cancelled  { color: #c0392b; border-color: #c0392b; background: transparent; }
+.badge-pending    { color: #b07a2a; border-color: #b07a2a; background: transparent; }
 
 .action-link {
     font-size: 13.5px;

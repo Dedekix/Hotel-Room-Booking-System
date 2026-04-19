@@ -6,17 +6,52 @@
 <link rel="stylesheet" href="~/css/BookRoom.css" />
 
 <div class="bookroom-page" style="display:flex;align-items:center;justify-content:center;min-height:80vh">
-    <div style="text-align:center;max-width:480px">
-        <div style="font-size:60px;margin-bottom:16px">🎉</div>
-        <h2 style="font-size:26px;font-weight:700;color:#1a1a1a;margin-bottom:10px">Booking Confirmed!</h2>
-        <p style="color:#666;font-size:15px;margin-bottom:30px">
-            Your room has been successfully booked. A confirmation will be sent to your email.
+    <div style="text-align:center;max-width:500px">
+        <div style="font-size:64px;margin-bottom:16px">🎉</div>
+        <h2 style="font-size:26px;font-weight:800;color:#1a1a1a;margin-bottom:10px">
+            @(Model.BookingType == "EVENT" ? "Reservation Confirmed!" : "Booking Confirmed!")
+        </h2>
+
+        @if (Model.IsPaid)
+        {
+            <div style="display:inline-flex;align-items:center;gap:8px;background:#edfaf3;border:1.5px solid #a9dfbf;color:#1e7a4a;padding:10px 20px;border-radius:30px;font-size:14px;font-weight:700;margin-bottom:20px">
+                <i class="fa-solid fa-circle-check"></i> Payment Successful
+            </div>
+        }
+        else
+        {
+            <div style="display:inline-flex;align-items:center;gap:8px;background:#fff8e1;border:1.5px solid #f0c040;color:#7a5c00;padding:10px 20px;border-radius:30px;font-size:14px;font-weight:700;margin-bottom:20px">
+                <i class="fa-solid fa-clock"></i> Pending — Pay at Front Desk
+            </div>
+        }
+
+        <p style="color:#666;font-size:15px;margin-bottom:30px;line-height:1.7">
+            @if (Model.BookingType == "EVENT")
+            {
+                <text>Your spot has been reserved successfully.@(Model.IsPaid ? " Your payment has been processed." : " Please pay at the front desk to confirm your spot.")</text>
+            }
+            else
+            {
+                <text>Your room has been successfully booked.@(Model.IsPaid ? " Your payment has been processed." : " Please pay at the front desk — your booking will be confirmed by staff upon payment.")</text>
+            }
         </p>
-        <a href="/Customer/MyBookings" style="background:#b07a2a;color:white;padding:13px 32px;border-radius:8px;text-decoration:none;font-weight:600;font-size:15px;margin-right:12px">
-            View My Bookings
-        </a>
-        <a href="/Rooms" style="background:transparent;color:#b07a2a;padding:13px 32px;border-radius:8px;text-decoration:none;font-weight:600;font-size:15px;border:2px solid #b07a2a">
-            Browse More Rooms
-        </a>
+
+        <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+            <a href="/Customer/MyBookings" style="background:#b07a2a;color:white;padding:13px 28px;border-radius:8px;text-decoration:none;font-weight:600;font-size:15px">
+                <i class="fa-regular fa-calendar-check"></i> My Bookings
+            </a>
+            @if (Model.BookingType == "EVENT")
+            {
+                <a href="/Events" style="background:transparent;color:#b07a2a;padding:13px 28px;border-radius:8px;text-decoration:none;font-weight:600;font-size:15px;border:2px solid #b07a2a">
+                    Browse Events
+                </a>
+            }
+            else
+            {
+                <a href="/Rooms" style="background:transparent;color:#b07a2a;padding:13px 28px;border-radius:8px;text-decoration:none;font-weight:600;font-size:15px;border:2px solid #b07a2a">
+                    Browse Rooms
+                </a>
+            }
+        </div>
     </div>
 </div>

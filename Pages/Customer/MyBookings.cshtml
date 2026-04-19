@@ -24,7 +24,7 @@
             </div>
             <div class="hero-stat-divider"></div>
             <div class="hero-stat">
-                <span>@Model.RoomBookings.Count(b => b.Status == "CONFIRMED" || b.Status == "CHECKED_IN")</span>
+                <span>@Model.RoomBookings.Count(b => b.Status == "CONFIRMED" || b.Status == "CHECKED_IN" || b.Status == "PENDING")</span>
                 <p>Active</p>
             </div>
         </div>

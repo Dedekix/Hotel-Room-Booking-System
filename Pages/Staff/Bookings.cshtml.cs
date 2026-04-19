@@ -34,6 +34,12 @@ namespace HotelBookingSystem.Pages.Staff
             LoadBookings();
         }
 
+        public IActionResult OnPostConfirm(int bookingId, int p = 1)
+        {
+            UpdateStatus(bookingId, "CONFIRMED");
+            return RedirectToPage(new { p });
+        }
+
         public IActionResult OnPostCheckIn(int bookingId, int p = 1)
         {
             UpdateStatus(bookingId, "CHECKED_IN");

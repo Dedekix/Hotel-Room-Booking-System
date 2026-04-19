@@ -4,6 +4,7 @@
     Layout = "_StaffLayout";
     ViewData["Title"] = "Bookings";
     ViewData["ActivePage"] = "Bookings";
+    int pending    = Model.Bookings.Count(b => b.Status == "PENDING");
     int confirmed  = Model.Bookings.Count(b => b.Status == "CONFIRMED");
     int checkedIn  = Model.Bookings.Count(b => b.Status == "CHECKED_IN");
     int completed  = Model.Bookings.Count(b => b.Status == "CHECKED_OUT" || b.Status == "COMPLETED");
@@ -27,6 +28,9 @@
 <div class="bookings-filter-tabs">
     <button class="b-filter-btn active" data-filter="all">
         All <span class="b-filter-count">@Model.Bookings.Count</span>
+    </button>
+    <button class="b-filter-btn" data-filter="PENDING">
+        Pending <span class="b-filter-count">@pending</span>
     </button>
     <button class="b-filter-btn" data-filter="CONFIRMED">
         Confirmed <span class="b-filter-count">@confirmed</span>
@@ -62,6 +66,7 @@
             {
                 string badgeClass = b.Status switch
                 {
+                    "PENDING"     => "badge-pending",
                     "CHECKED_IN"  => "badge-checkedin",
                     "CONFIRMED"   => "badge-confirmed",
                     "CHECKED_OUT" => "badge-completed",
@@ -71,6 +76,7 @@
                 };
                 string badgeLabel = b.Status switch
                 {
+                    "PENDING"     => "Pending",
                     "CHECKED_IN"  => "Checked In",
                     "CONFIRMED"   => "Confirmed",
                     "CHECKED_OUT" => "Completed",
@@ -92,7 +98,17 @@
                     <td><span class="table-amount">$@b.TotalAmount.ToString("0.00")</span></td>
                     <td><span class="badge-status @badgeClass">@badgeLabel</span></td>
                     <td>
-                        @if (b.Status == "CONFIRMED")
+                        @if (b.Status == "PENDING")
+                        {
+                            <form method="post" asp-page-handler="Confirm" style="display:inline">
+                                <input type="hidden" name="bookingId" value="@b.BookingId" />
+                                <button class="action-btn action-btn-checkin"
+                                    onclick="ghConfirm(event, 'Confirm booking for @b.GuestName (Room @b.RoomNumber)?', () => this.closest('form').submit())">
+                                    <i class="fa-solid fa-circle-check"></i> Confirm
+                                </button>
+                            </form>
+                        }
+                        else if (b.Status == "CONFIRMED")
                         {
                             <form method="post" asp-page-handler="CheckIn" style="display:inline">
                                 <input type="hidden" name="bookingId" value="@b.BookingId" />
@@ -164,7 +180,6 @@
             row.style.display = matchSearch && matchFilter ? '' : 'none';
         });
     }
-
     document.querySelectorAll('.b-filter-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             document.querySelectorAll('.b-filter-btn').forEach(b => b.classList.remove('active'));

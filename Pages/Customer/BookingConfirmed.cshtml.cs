@@ -4,6 +4,13 @@ namespace HotelBookingSystem.Pages.Customer
 {
     public class BookingConfirmedModel : PageModel
     {
-        public void OnGet() { }
+        public bool   IsPaid      { get; set; }
+        public string BookingType { get; set; } = "";
+
+        public void OnGet(string? type, int? id, bool paid = false)
+        {
+            IsPaid      = paid;
+            BookingType = type?.ToUpper() ?? "ROOM";
+        }
     }
 }

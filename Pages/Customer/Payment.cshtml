@@ -1,0 +1,141 @@
+@page
+@model HotelBookingSystem.Pages.Customer.PaymentModel
+@{
+    ViewData["Title"] = "Payment";
+}
+<link rel="stylesheet" href="~/css/Payment.css" />
+
+<div class="payment-page">
+    <div class="payment-card">
+
+        <div class="payment-header">
+            <div class="payment-icon"><i class="fa-solid fa-lock"></i></div>
+            <h2>Secure Payment</h2>
+            <p>Complete your payment to confirm your booking</p>
+        </div>
+
+        <!-- Order Summary -->
+        <div class="payment-summary">
+            <div class="summary-label">Booking Summary</div>
+            <div class="summary-detail">@Model.Summary</div>
+            <div class="summary-amount">
+                <span>Total Due</span>
+                <strong>$@Model.Amount.ToString("0.00")</strong>
+            </div>
+        </div>
+
+        @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+        {
+            <div class="payment-error"><i class="fa-solid fa-circle-exclamation"></i> @Model.ErrorMessage</div>
+        }
+
+        <!-- Payment Form -->
+        <form method="post">
+            <input type="hidden" name="type" value="@Model.BookingType" />
+            <input type="hidden" name="id"   value="@Model.BookingId" />
+
+            <div class="payment-section-label">Select Payment Method</div>
+            <div class="method-grid">
+                <label class="method-card">
+                    <input type="radio" name="method" value="Credit Card" required />
+                    <div class="method-body">
+                        <i class="fa-regular fa-credit-card"></i>
+                        <span>Credit Card</span>
+                    </div>
+                </label>
+                <label class="method-card">
+                    <input type="radio" name="method" value="Debit Card" />
+                    <div class="method-body">
+                        <i class="fa-solid fa-credit-card"></i>
+                        <span>Debit Card</span>
+                    </div>
+                </label>
+                <label class="method-card">
+                    <input type="radio" name="method" value="Mobile Money" />
+                    <div class="method-body">
+                        <i class="fa-solid fa-mobile-screen"></i>
+                        <span>Mobile Money</span>
+                    </div>
+                </label>
+                <label class="method-card">
+                    <input type="radio" name="method" value="In Person" />
+                    <div class="method-body">
+                        <i class="fa-solid fa-money-bill-wave"></i>
+                        <span>Pay In Person</span>
+                    </div>
+                </label>
+            </div>
+
+            <!-- Card Details (shown for card methods) -->
+            <div class="card-fields" id="cardFields">
+                <div class="payment-section-label" style="margin-top:24px">Card Details</div>
+                <div class="form-group">
+                    <label>Cardholder Name</label>
+                    <input type="text" placeholder="John Smith" />
+                </div>
+                <div class="form-group">
+                    <label>Card Number</label>
+                    <input type="text" placeholder="•••• •••• •••• ••••" maxlength="19" id="cardNum" oninput="formatCard(this)" />
+                </div>
+                <div class="form-row-half">
+                    <div class="form-group">
+                        <label>Expiry Date</label>
+                        <input type="text" placeholder="MM / YY" maxlength="7" />
+                    </div>
+                    <div class="form-group">
+                        <label>CVV</label>
+                        <input type="text" placeholder="•••" maxlength="3" />
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mobile Money (shown for mobile money) -->
+            <div class="mobile-fields" id="mobileFields" style="display:none">
+                <div class="payment-section-label" style="margin-top:24px">Mobile Money Details</div>
+                <div class="form-group">
+                    <label>Phone Number</label>
+                    <input type="text" placeholder="+250 7XX XXX XXX" />
+                </div>
+            </div>
+
+            <!-- In Person notice -->
+            <div id="inPersonNotice" style="display:none;margin-top:24px;padding:16px;background:#fff8e1;border:1.5px solid #f0c040;border-radius:8px;color:#7a5c00;font-size:14px">
+                <i class="fa-solid fa-circle-info"></i>
+                <strong>Pay at the front desk.</strong> Your booking will remain <strong>Pending</strong> until staff confirms your payment on arrival.
+            </div>
+
+            <button type="submit" class="btn-pay" id="btnPay">
+                <i class="fa-solid fa-lock"></i> <span id="btnPayLabel">Pay $@Model.Amount.ToString("0.00")</span>
+            </button>
+
+            <a href="javascript:history.back()" class="btn-cancel-payment">Cancel</a>
+        </form>
+
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    const radios        = document.querySelectorAll('input[name="method"]');
+    const cardFields    = document.getElementById('cardFields');
+    const mobFields     = document.getElementById('mobileFields');
+    const inPersonNote  = document.getElementById('inPersonNotice');
+    const btnPayLabel   = document.getElementById('btnPayLabel');
+
+    radios.forEach(r => r.addEventListener('change', () => {
+        const isInPerson = r.value === 'In Person';
+        const isMobile   = r.value === 'Mobile Money';
+        cardFields.style.display   = (!isMobile && !isInPerson) ? 'block' : 'none';
+        mobFields.style.display    = isMobile   ? 'block' : 'none';
+        inPersonNote.style.display = isInPerson ? 'block' : 'none';
+        btnPayLabel.textContent    = isInPerson ? 'Confirm Booking (Pay Later)' : 'Pay $@Model.Amount.ToString("0.00")';
+        document.querySelectorAll('.method-card').forEach(c => c.classList.remove('selected'));
+        r.closest('.method-card').classList.add('selected');
+    }));
+
+    function formatCard(el) {
+        let v = el.value.replace(/\D/g, '').substring(0, 16);
+        el.value = v.replace(/(.{4})/g, '$1 ').trim();
+    }
+</script>
+}

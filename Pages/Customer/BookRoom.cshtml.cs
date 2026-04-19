@@ -111,13 +111,15 @@ namespace HotelBookingSystem.Pages.Customer
                 }
             }
 
-            // ── Insert booking ────────────────────────────────
+            // ── Insert booking & redirect to payment ──────────
             string insert = @"
                 INSERT INTO Bookings
                     (userId, roomId, checkInDate, checkOutDate, guestCount, totalPrice, status)
+                OUTPUT INSERTED.bookingId
                 VALUES
-                    (@uid, @rid, @cin, @cout, @guests, @price, 'CONFIRMED')";
+                    (@uid, @rid, @cin, @cout, @guests, @price, 'PENDING')";
 
+            int newBookingId;
             using (var cmd = new SqlCommand(insert, conn))
             {
                 cmd.Parameters.AddWithValue("@uid",    userId);
@@ -126,10 +128,10 @@ namespace HotelBookingSystem.Pages.Customer
                 cmd.Parameters.AddWithValue("@cout",   checkOut.Date);
                 cmd.Parameters.AddWithValue("@guests", guestCount);
                 cmd.Parameters.AddWithValue("@price",  totalPrice);
-                cmd.ExecuteNonQuery();
+                newBookingId = (int)cmd.ExecuteScalar();
             }
 
-            return RedirectToPage("/Customer/BookingConfirmed");
+            return RedirectToPage("/Customer/Payment", new { type = "ROOM", id = newBookingId });
         }
 
         private bool LoadRoom(int roomId)
