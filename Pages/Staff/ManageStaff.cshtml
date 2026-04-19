@@ -1,0 +1,164 @@
+@page
+@model HotelBookingSystem.Pages.Staff.ManageStaffModel
+@{
+    Layout = "_StaffLayout";
+    ViewData["Title"] = "Staff Management";
+    ViewData["ActivePage"] = "ManageStaff";
+}
+
+<div class="dash-header">
+    <div>
+        <p class="dash-greeting">Admin Panel</p>
+        <h1 class="staff-page-title">Staff Management</h1>
+        <p class="dash-date"><i class="fa-solid fa-users"></i> @Model.StaffList.Count staff member@(Model.StaffList.Count != 1 ? "s" : "")</p>
+    </div>
+    <button class="btn-add-room" onclick="document.getElementById('addModal').style.display='flex'">
+        <i class="fa-solid fa-user-plus"></i> Add Staff
+    </button>
+</div>
+
+@if (!string.IsNullOrEmpty(Model.ErrorMessage))
+{
+    <div class="staff-alert staff-alert-error"><i class="fa-solid fa-circle-exclamation"></i> @Model.ErrorMessage</div>
+}
+@if (!string.IsNullOrEmpty(Model.SuccessMessage))
+{
+    <div class="staff-alert staff-alert-success"><i class="fa-solid fa-circle-check"></i> @Model.SuccessMessage</div>
+}
+
+<div class="staff-table-wrap">
+    <table class="staff-table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Full Name</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (!Model.StaffList.Any())
+            {
+                <tr><td colspan="5" class="text-center" style="padding:2rem;color:#888">No staff accounts found.</td></tr>
+            }
+            @foreach (var (s, i) in Model.StaffList.Select((s, i) => (s, i + 1)))
+            {
+                <tr>
+                    <td>@i</td>
+                    <td><i class="fa-solid fa-user" style="color:#b07a2a;margin-right:6px"></i>@s.FullName</td>
+                    <td>@s.Email</td>
+                    <td><span class="role-badge role-@s.Role.ToLower()">@s.Role</span></td>
+                    <td class="action-cell">
+                        <button class="btn-edit" onclick="openEdit(@s.Id, '@Html.Raw(s.FullName.Replace("'", "\\'"))', '@s.Email', '@s.Role')">
+                            <i class="fa-solid fa-pen"></i> Edit
+                        </button>
+                        <form method="post" asp-page-handler="Delete" style="display:inline" id="del-@s.Id">
+                            <input type="hidden" name="staffId" value="@s.Id" />
+                            <button type="button" class="btn-delete"
+                                onclick="ghConfirm(event, 'Delete @Html.Raw(s.FullName.Replace("'", "\\'"))?', () => document.getElementById('del-@s.Id').submit())">
+                                <i class="fa-solid fa-trash"></i> Delete
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<!-- ADD MODAL -->
+<div class="modal-backdrop" id="addModal" style="display:none">
+    <div class="modal-card">
+        <div class="modal-header">
+            <h3><i class="fa-solid fa-user-plus"></i> Add Staff Account</h3>
+            <button class="modal-close" onclick="document.getElementById('addModal').style.display='none'">&times;</button>
+        </div>
+        <form method="post" asp-page-handler="Add">
+            <div class="modal-body">
+                <div class="mform-group">
+                    <label>Full Name</label>
+                    <input type="text" name="fullName" placeholder="e.g. Jane Doe" required />
+                </div>
+                <div class="mform-group">
+                    <label>Email</label>
+                    <input type="email" name="email" placeholder="staff@grandhaven.com" required />
+                </div>
+                <div class="mform-group">
+                    <label>Role</label>
+                    <select name="role" required>
+                        <option value="STAFF">Staff</option>
+                        <option value="ADMIN">Admin</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-modal-cancel" onclick="document.getElementById('addModal').style.display='none'">Cancel</button>
+                <button type="submit" class="btn-modal-confirm"><i class="fa-solid fa-user-plus"></i> Create Account</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- EDIT MODAL -->
+<div class="modal-backdrop" id="editModal" style="display:none">
+    <div class="modal-card">
+        <div class="modal-header">
+            <h3><i class="fa-solid fa-pen"></i> Edit Staff Account</h3>
+            <button class="modal-close" onclick="document.getElementById('editModal').style.display='none'">&times;</button>
+        </div>
+        <form method="post" asp-page-handler="Edit">
+            <input type="hidden" name="staffId" id="editId" />
+            <div class="modal-body">
+                <div class="mform-group">
+                    <label>Full Name</label>
+                    <input type="text" name="fullName" id="editName" required />
+                </div>
+                <div class="mform-group">
+                    <label>Email</label>
+                    <input type="email" name="email" id="editEmail" required />
+                </div>
+                <div class="mform-group">
+                    <label>Role</label>
+                    <select name="role" id="editRole" required>
+                        <option value="STAFF">Staff</option>
+                        <option value="ADMIN">Admin</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-modal-cancel" onclick="document.getElementById('editModal').style.display='none'">Cancel</button>
+                <button type="submit" class="btn-modal-confirm"><i class="fa-solid fa-floppy-disk"></i> Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    function openEdit(id, name, email, role) {
+        document.getElementById('editId').value    = id;
+        document.getElementById('editName').value  = name;
+        document.getElementById('editEmail').value = email;
+        document.getElementById('editRole').value  = role;
+        document.getElementById('editModal').style.display = 'flex';
+    }
+    document.querySelectorAll('.modal-backdrop').forEach(el => {
+        el.addEventListener('click', e => { if (e.target === el) el.style.display = 'none'; });
+    });
+</script>
+<style>
+    .staff-table-wrap { overflow-x: auto; margin-top: 1.5rem; }
+    .staff-table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,.07); }
+    .staff-table th { background: #1a1208; color: #f0a94b; padding: .85rem 1.1rem; text-align: left; font-size: .8rem; text-transform: uppercase; letter-spacing: .05em; }
+    .staff-table td { padding: .85rem 1.1rem; border-bottom: 1px solid #f0ece4; font-size: .92rem; vertical-align: middle; }
+    .staff-table tbody tr:last-child td { border-bottom: none; }
+    .staff-table tbody tr:hover { background: #fdf8f0; }
+    .role-badge { padding: .25rem .7rem; border-radius: 20px; font-size: .75rem; font-weight: 600; text-transform: uppercase; }
+    .role-staff { background: #e8f4fd; color: #1a6fa8; }
+    .role-admin { background: #fff3e0; color: #b07a2a; }
+    .action-cell { display: flex; gap: .5rem; align-items: center; }
+    .btn-delete { background: #fff0f0; color: #c0392b; border: 1px solid #f5c6c6; padding: .4rem .9rem; border-radius: 8px; font-size: .82rem; cursor: pointer; transition: background .2s; }
+    .btn-delete:hover { background: #fde8e8; }
+</style>
+}

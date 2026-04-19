@@ -28,7 +28,7 @@ namespace HotelBookingSystem.Pages
         public string Email { get; set; } = string.Empty;
 
         [BindProperty]
-        public string Role { get; set; } = "Customer";
+        public string Phone { get; set; } = string.Empty;
 
         public string? ErrorMessage { get; set; }
 
@@ -36,7 +36,7 @@ namespace HotelBookingSystem.Pages
 
         public IActionResult OnPost()
         {
-            if (string.IsNullOrWhiteSpace(FullName) || string.IsNullOrWhiteSpace(Email) || string.IsNullOrWhiteSpace(Role))
+            if (string.IsNullOrWhiteSpace(FullName) || string.IsNullOrWhiteSpace(Email))
             {
                 ErrorMessage = "All fields are required.";
                 return Page();
@@ -60,12 +60,13 @@ namespace HotelBookingSystem.Pages
                         }
                     }
 
-                    string insertQuery = "INSERT INTO Users (fullName, email, role) VALUES (@FullName, @Email, @Role)";
+                    string insertQuery = "INSERT INTO Users (fullName, email, phone, role) VALUES (@FullName, @Email, @Phone, @Role)";
                     using (SqlCommand cmd = new SqlCommand(insertQuery, conn))
                     {
                         cmd.Parameters.AddWithValue("@FullName", FullName);
                         cmd.Parameters.AddWithValue("@Email", Email);
-                        cmd.Parameters.AddWithValue("@Role", Role.ToUpper());
+                        cmd.Parameters.AddWithValue("@Phone", string.IsNullOrWhiteSpace(Phone) ? DBNull.Value : Phone);
+                        cmd.Parameters.AddWithValue("@Role", "CUSTOMER");
                         cmd.ExecuteNonQuery();
                     }
 
