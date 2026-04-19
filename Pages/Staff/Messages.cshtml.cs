@@ -18,17 +18,22 @@ namespace HotelBookingSystem.Pages.Staff
     public class MessagesModel : PageModel
     {
         private readonly string _conn;
+        private const int PageSize = 5;
         public MessagesModel(string connectionString) => _conn = connectionString;
 
-        public List<MessageItem> Messages { get; set; } = new();
+        public List<MessageItem> Messages   { get; set; } = new();
+        public int CurrentPage { get; set; } = 1;
+        public int TotalPages  { get; set; } = 1;
+        public int TotalCount  { get; set; }
 
-        public void OnGet()
+        public void OnGet(int p = 1)
         {
             if (HttpContext.Session.GetString("UserRole") != "ADMIN") { Response.Redirect("/Login"); return; }
+            CurrentPage = Math.Max(1, p);
             LoadMessages();
         }
 
-        public IActionResult OnPost(int messageId)
+        public IActionResult OnPost(int messageId, int p = 1)
         {
             if (HttpContext.Session.GetString("UserRole") != "ADMIN") return RedirectToPage("/Login");
 
@@ -38,16 +43,30 @@ namespace HotelBookingSystem.Pages.Staff
             cmd.Parameters.AddWithValue("@id", messageId);
             cmd.ExecuteNonQuery();
 
-            LoadMessages();
-            return Page();
+            return RedirectToPage(new { p });
         }
 
         private void LoadMessages()
         {
             using var conn = new SqlConnection(_conn);
             conn.Open();
-            using var cmd    = new SqlCommand("SELECT messageId, fullName, email, subject, message, sentAt, isRead FROM ContactMessages ORDER BY sentAt DESC", conn);
-            using var reader = cmd.ExecuteReader();
+
+            using (var cmd = new SqlCommand("SELECT COUNT(*) FROM ContactMessages", conn))
+                TotalCount = (int)cmd.ExecuteScalar();
+
+            TotalPages  = Math.Max(1, (int)Math.Ceiling(TotalCount / (double)PageSize));
+            CurrentPage = Math.Min(CurrentPage, TotalPages);
+
+            string sql = @"
+                SELECT messageId, fullName, email, subject, message, sentAt, isRead
+                FROM ContactMessages
+                ORDER BY sentAt DESC
+                OFFSET @skip ROWS FETCH NEXT @take ROWS ONLY";
+
+            using var cmd2   = new SqlCommand(sql, conn);
+            cmd2.Parameters.AddWithValue("@skip", (CurrentPage - 1) * PageSize);
+            cmd2.Parameters.AddWithValue("@take", PageSize);
+            using var reader = cmd2.ExecuteReader();
             while (reader.Read())
                 Messages.Add(new MessageItem
                 {

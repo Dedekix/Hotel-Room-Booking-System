@@ -29,19 +29,39 @@ namespace HotelBookingSystem.Pages.Customer
     public class MyBookingsModel : PageModel
     {
         private readonly string _conn;
+        private const int PageSize = 5;
         public MyBookingsModel(string connectionString) => _conn = connectionString;
 
         public List<RoomBookingItem>      RoomBookings      { get; set; } = new();
         public List<EventReservationItem> EventReservations { get; set; } = new();
 
-        public IActionResult OnGet()
+        public int RoomPage       { get; set; } = 1;
+        public int RoomTotalPages { get; set; } = 1;
+        public int EventPage      { get; set; } = 1;
+        public int EventTotalPages{ get; set; } = 1;
+
+        public IActionResult OnGet(int rp = 1, int ep = 1)
         {
             var userId = HttpContext.Session.GetString("UserId");
             if (string.IsNullOrEmpty(userId))
                 return Redirect("/Login?returnUrl=/Customer/MyBookings");
 
+            int uid = int.Parse(userId);
+            RoomPage  = Math.Max(1, rp);
+            EventPage = Math.Max(1, ep);
+
             using var conn = new SqlConnection(_conn);
             conn.Open();
+
+            // Room bookings
+            int roomCount;
+            using (var cmd = new SqlCommand("SELECT COUNT(*) FROM Bookings WHERE userId = @uid", conn))
+            {
+                cmd.Parameters.AddWithValue("@uid", uid);
+                roomCount = (int)cmd.ExecuteScalar();
+            }
+            RoomTotalPages = Math.Max(1, (int)Math.Ceiling(roomCount / (double)PageSize));
+            RoomPage       = Math.Min(RoomPage, RoomTotalPages);
 
             using (var cmd = new SqlCommand(@"
                 SELECT b.bookingId, r.roomNumber, r.type,
@@ -49,9 +69,12 @@ namespace HotelBookingSystem.Pages.Customer
                 FROM Bookings b
                 JOIN Rooms r ON b.roomId = r.roomId
                 WHERE b.userId = @uid
-                ORDER BY b.bookingId DESC", conn))
+                ORDER BY b.bookingId DESC
+                OFFSET @skip ROWS FETCH NEXT @take ROWS ONLY", conn))
             {
-                cmd.Parameters.AddWithValue("@uid", int.Parse(userId));
+                cmd.Parameters.AddWithValue("@uid",  uid);
+                cmd.Parameters.AddWithValue("@skip", (RoomPage - 1) * PageSize);
+                cmd.Parameters.AddWithValue("@take", PageSize);
                 using var reader = cmd.ExecuteReader();
                 while (reader.Read())
                     RoomBookings.Add(new RoomBookingItem
@@ -67,14 +90,27 @@ namespace HotelBookingSystem.Pages.Customer
                     });
             }
 
+            // Event reservations
+            int eventCount;
+            using (var cmd = new SqlCommand("SELECT COUNT(*) FROM EventBookings WHERE userId = @uid", conn))
+            {
+                cmd.Parameters.AddWithValue("@uid", uid);
+                eventCount = (int)cmd.ExecuteScalar();
+            }
+            EventTotalPages = Math.Max(1, (int)Math.Ceiling(eventCount / (double)PageSize));
+            EventPage       = Math.Min(EventPage, EventTotalPages);
+
             using (var cmd = new SqlCommand(@"
                 SELECT eb.eventBookingId, e.title, e.eventDate, e.location, e.price, eb.status
                 FROM EventBookings eb
                 JOIN Events e ON eb.eventId = e.eventId
                 WHERE eb.userId = @uid
-                ORDER BY eb.eventBookingId DESC", conn))
+                ORDER BY eb.eventBookingId DESC
+                OFFSET @skip ROWS FETCH NEXT @take ROWS ONLY", conn))
             {
-                cmd.Parameters.AddWithValue("@uid", int.Parse(userId));
+                cmd.Parameters.AddWithValue("@uid",  uid);
+                cmd.Parameters.AddWithValue("@skip", (EventPage - 1) * PageSize);
+                cmd.Parameters.AddWithValue("@take", PageSize);
                 using var reader = cmd.ExecuteReader();
                 while (reader.Read())
                     EventReservations.Add(new EventReservationItem
@@ -91,7 +127,7 @@ namespace HotelBookingSystem.Pages.Customer
             return Page();
         }
 
-        public IActionResult OnPostCancelRoom(int bookingId)
+        public IActionResult OnPostCancelRoom(int bookingId, int rp = 1, int ep = 1)
         {
             var userId = HttpContext.Session.GetString("UserId");
             if (string.IsNullOrEmpty(userId)) return Redirect("/Login");
@@ -104,10 +140,10 @@ namespace HotelBookingSystem.Pages.Customer
             cmd.Parameters.AddWithValue("@uid", int.Parse(userId));
             cmd.ExecuteNonQuery();
 
-            return RedirectToPage();
+            return RedirectToPage(new { rp, ep });
         }
 
-        public IActionResult OnPostCancelEvent(int eventBookingId)
+        public IActionResult OnPostCancelEvent(int eventBookingId, int rp = 1, int ep = 1)
         {
             var userId = HttpContext.Session.GetString("UserId");
             if (string.IsNullOrEmpty(userId)) return Redirect("/Login");
@@ -120,7 +156,7 @@ namespace HotelBookingSystem.Pages.Customer
             cmd.Parameters.AddWithValue("@uid", int.Parse(userId));
             cmd.ExecuteNonQuery();
 
-            return RedirectToPage();
+            return RedirectToPage(new { rp, ep });
         }
     }
 }

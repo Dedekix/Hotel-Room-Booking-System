@@ -20,18 +20,19 @@ namespace HotelBookingSystem.Pages.Staff
     public class EventBookingsModel : PageModel
     {
         private readonly string _conn;
+        private const int PageSize = 5;
         public EventBookingsModel(string connectionString) => _conn = connectionString;
 
-        public List<EventBookingItem> Bookings { get; set; } = new();
+        public List<EventBookingItem> Bookings   { get; set; } = new();
+        public int CurrentPage { get; set; } = 1;
+        public int TotalPages  { get; set; } = 1;
+        public int TotalCount  { get; set; }
 
-        public void OnGet()
+        public void OnGet(int p = 1)
         {
             var role = HttpContext.Session.GetString("UserRole");
-            if (role != "STAFF" && role != "ADMIN")
-            {
-                Response.Redirect("/Login?returnUrl=/Staff/EventBookings");
-                return;
-            }
+            if (role != "STAFF" && role != "ADMIN") { Response.Redirect("/Login?returnUrl=/Staff/EventBookings"); return; }
+            CurrentPage = Math.Max(1, p);
             LoadBookings();
         }
 
@@ -40,6 +41,12 @@ namespace HotelBookingSystem.Pages.Staff
             using var conn = new SqlConnection(_conn);
             conn.Open();
 
+            using (var cmd = new SqlCommand("SELECT COUNT(*) FROM EventBookings", conn))
+                TotalCount = (int)cmd.ExecuteScalar();
+
+            TotalPages  = Math.Max(1, (int)Math.Ceiling(TotalCount / (double)PageSize));
+            CurrentPage = Math.Min(CurrentPage, TotalPages);
+
             string sql = @"
                 SELECT eb.eventBookingId, u.fullName, u.email,
                        e.title, e.eventDate, e.location, e.price,
@@ -47,12 +54,14 @@ namespace HotelBookingSystem.Pages.Staff
                 FROM EventBookings eb
                 JOIN Users  u ON eb.userId  = u.userId
                 JOIN Events e ON eb.eventId = e.eventId
-                ORDER BY eb.bookedAt DESC";
+                ORDER BY eb.bookedAt DESC
+                OFFSET @skip ROWS FETCH NEXT @take ROWS ONLY";
 
-            using var cmd    = new SqlCommand(sql, conn);
-            using var reader = cmd.ExecuteReader();
+            using var cmd2   = new SqlCommand(sql, conn);
+            cmd2.Parameters.AddWithValue("@skip", (CurrentPage - 1) * PageSize);
+            cmd2.Parameters.AddWithValue("@take", PageSize);
+            using var reader = cmd2.ExecuteReader();
             while (reader.Read())
-            {
                 Bookings.Add(new EventBookingItem
                 {
                     EventBookingId = (int)reader["eventBookingId"],
@@ -65,7 +74,6 @@ namespace HotelBookingSystem.Pages.Staff
                     Status         = reader["status"].ToString()!,
                     BookedAt       = (DateTime)reader["bookedAt"]
                 });
-            }
         }
     }
 }

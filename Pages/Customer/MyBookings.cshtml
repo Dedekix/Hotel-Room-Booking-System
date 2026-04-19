@@ -111,6 +111,26 @@
         }
     </div>
 
+    <!-- ROOM PAGINATION -->
+    @if (Model.RoomTotalPages > 1)
+    {
+        <div class="pagination-bar">
+            @if (Model.RoomPage > 1)
+            {
+                <a href="?rp=@(Model.RoomPage - 1)&ep=@Model.EventPage" class="page-btn"><i class="fa-solid fa-chevron-left"></i></a>
+            }
+            @for (int i = 1; i <= Model.RoomTotalPages; i++)
+            {
+                <a href="?rp=@i&ep=@Model.EventPage" class="page-btn @(i == Model.RoomPage ? "page-btn-active" : "")">@i</a>
+            }
+            @if (Model.RoomPage < Model.RoomTotalPages)
+            {
+                <a href="?rp=@(Model.RoomPage + 1)&ep=@Model.EventPage" class="page-btn"><i class="fa-solid fa-chevron-right"></i></a>
+            }
+            <span class="page-info">Page @Model.RoomPage of @Model.RoomTotalPages</span>
+        </div>
+    }
+
     <!-- EVENT RESERVATIONS -->
     <div id="panelEvents" style="display:none">
         @if (!Model.EventReservations.Any())
@@ -170,6 +190,26 @@
             </div>
         }
     </div>
+
+    <!-- EVENT PAGINATION -->
+    @if (Model.EventTotalPages > 1)
+    {
+        <div class="pagination-bar">
+            @if (Model.EventPage > 1)
+            {
+                <a href="?rp=@Model.RoomPage&ep=@(Model.EventPage - 1)" class="page-btn"><i class="fa-solid fa-chevron-left"></i></a>
+            }
+            @for (int i = 1; i <= Model.EventTotalPages; i++)
+            {
+                <a href="?rp=@Model.RoomPage&ep=@i" class="page-btn @(i == Model.EventPage ? "page-btn-active" : "")">@i</a>
+            }
+            @if (Model.EventPage < Model.EventTotalPages)
+            {
+                <a href="?rp=@Model.RoomPage&ep=@(Model.EventPage + 1)" class="page-btn"><i class="fa-solid fa-chevron-right"></i></a>
+            }
+            <span class="page-info">Page @Model.EventPage of @Model.EventTotalPages</span>
+        </div>
+    }
 
 </div>
 
