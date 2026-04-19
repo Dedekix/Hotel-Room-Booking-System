@@ -4,7 +4,8 @@
     Layout = "_StaffLayout";
     ViewData["Title"] = "Event Bookings";
     ViewData["ActivePage"] = "EventBookings";
-    int booked    = Model.Bookings.Count(b => b.Status != "CANCELLED");
+    int pending   = Model.Bookings.Count(b => b.Status == "PENDING");
+    int confirmed = Model.Bookings.Count(b => b.Status == "CONFIRMED");
     int cancelled = Model.Bookings.Count(b => b.Status == "CANCELLED");
 }
 
@@ -23,9 +24,13 @@
 
 <!-- SUMMARY PILLS -->
 <div class="rooms-summary">
+    <div class="summary-pill summary-pill-yellow">
+        <i class="fa-solid fa-clock"></i>
+        <span>@pending Pending</span>
+    </div>
     <div class="summary-pill summary-pill-green">
         <i class="fa-solid fa-circle-check"></i>
-        <span>@booked Active Reservation@(booked != 1 ? "s" : "")</span>
+        <span>@confirmed Confirmed</span>
     </div>
     <div class="summary-pill summary-pill-red">
         <i class="fa-solid fa-circle-xmark"></i>
@@ -33,13 +38,21 @@
     </div>
 </div>
 
+@if (!string.IsNullOrEmpty(Model.SuccessMessage))
+{
+    <div class="staff-alert staff-alert-success"><i class="fa-solid fa-circle-check"></i> @Model.SuccessMessage</div>
+}
+
 <!-- FILTER TABS -->
 <div class="bookings-filter-tabs">
     <button class="b-filter-btn active" data-filter="all">
         All <span class="b-filter-count">@Model.Bookings.Count</span>
     </button>
+    <button class="b-filter-btn" data-filter="PENDING">
+        Pending <span class="b-filter-count">@pending</span>
+    </button>
     <button class="b-filter-btn" data-filter="CONFIRMED">
-        Booked <span class="b-filter-count">@booked</span>
+        Confirmed <span class="b-filter-count">@confirmed</span>
     </button>
     <button class="b-filter-btn" data-filter="CANCELLED">
         Cancelled <span class="b-filter-count">@cancelled</span>
@@ -59,13 +72,24 @@
                 <th>Price</th>
                 <th>Booked At</th>
                 <th>Status</th>
+                <th>Action</th>
             </tr>
         </thead>
         <tbody>
             @foreach (var b in Model.Bookings)
             {
-                string badgeClass = b.Status == "CANCELLED" ? "badge-cancelled" : "badge-checkedin";
-                string badgeLabel = b.Status == "CANCELLED" ? "Cancelled" : "Booked";
+                string badgeClass = b.Status switch
+                {
+                    "CONFIRMED" => "badge-checkedin",
+                    "CANCELLED" => "badge-cancelled",
+                    _           => "badge-pending"
+                };
+                string badgeLabel = b.Status switch
+                {
+                    "CONFIRMED" => "Confirmed",
+                    "CANCELLED" => "Cancelled",
+                    _           => "Pending"
+                };
                 <tr data-status="@b.Status" data-search="@b.GuestName.ToLower() @b.EventTitle.ToLower()">
                     <td><span class="booking-id">EB@(b.EventBookingId.ToString("D3"))</span></td>
                     <td>
@@ -92,12 +116,29 @@
                     </td>
                     <td class="table-date">@b.BookedAt.ToString("MMM d, yyyy")</td>
                     <td><span class="badge-status @badgeClass">@badgeLabel</span></td>
+                    <td>
+                        @if (b.Status == "PENDING")
+                        {
+                            <form method="post" asp-page-handler="Confirm" id="confirm-@b.EventBookingId" style="margin:0">
+                                <input type="hidden" name="eventBookingId" value="@b.EventBookingId" />
+                                <input type="hidden" name="amount" value="@b.Price" />
+                                <button type="button" class="btn-checkin"
+                                    onclick="ghConfirm(event, 'Confirm in-person payment for @Html.Raw(b.GuestName.Replace("'", "&#39;"))?', () => document.getElementById('confirm-@b.EventBookingId').submit())">
+                                    <i class="fa-solid fa-circle-check"></i> Confirm Payment
+                                </button>
+                            </form>
+                        }
+                        else
+                        {
+                            <span style="color:#ccc;font-size:12px">&mdash;</span>
+                        }
+                    </td>
                 </tr>
             }
             @if (!Model.Bookings.Any())
             {
                 <tr>
-                    <td colspan="8" class="table-empty">
+                    <td colspan="9" class="table-empty">
                         <i class="fa-regular fa-calendar-xmark"></i> No event reservations found.
                     </td>
                 </tr>
@@ -134,9 +175,7 @@
         const q = document.getElementById('searchInput').value.toLowerCase();
         document.querySelectorAll('#ebTable tbody tr[data-status]').forEach(row => {
             const matchSearch = row.dataset.search.includes(q);
-            const matchFilter = activeFilter === 'all'
-                || (activeFilter === 'CANCELLED' && row.dataset.status === 'CANCELLED')
-                || (activeFilter === 'CONFIRMED' && row.dataset.status !== 'CANCELLED');
+            const matchFilter = activeFilter === 'all' || row.dataset.status === activeFilter;
             row.style.display = matchSearch && matchFilter ? '' : 'none';
         });
     }

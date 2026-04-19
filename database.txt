@@ -157,3 +157,5 @@ INSERT INTO EventBookings (eventId, userId, status) VALUES
 ALTER TABLE Events ADD imagePath NVARCHAR(255) NULL;
 
 ALTER TABLE Payments ADD eventBookingId INT NULL FOREIGN KEY REFERENCES EventBookings(eventBookingId);
+
+ALTER TABLE Payments ALTER COLUMN bookingId INT NULL;

@@ -23,10 +23,11 @@ namespace HotelBookingSystem.Pages.Staff
         private const int PageSize = 5;
         public EventBookingsModel(string connectionString) => _conn = connectionString;
 
-        public List<EventBookingItem> Bookings   { get; set; } = new();
-        public int CurrentPage { get; set; } = 1;
-        public int TotalPages  { get; set; } = 1;
-        public int TotalCount  { get; set; }
+        public List<EventBookingItem> Bookings     { get; set; } = new();
+        public int     CurrentPage   { get; set; } = 1;
+        public int     TotalPages    { get; set; } = 1;
+        public int     TotalCount    { get; set; }
+        public string? SuccessMessage { get; set; }
 
         public void OnGet(int p = 1)
         {
@@ -34,6 +35,35 @@ namespace HotelBookingSystem.Pages.Staff
             if (role != "STAFF" && role != "ADMIN") { Response.Redirect("/Login?returnUrl=/Staff/EventBookings"); return; }
             CurrentPage = Math.Max(1, p);
             LoadBookings();
+        }
+
+        public IActionResult OnPostConfirm(int eventBookingId, decimal amount)
+        {
+            var role = HttpContext.Session.GetString("UserRole");
+            if (role != "STAFF" && role != "ADMIN") return Redirect("/Login");
+
+            using var conn = new SqlConnection(_conn);
+            conn.Open();
+
+            using (var cmd = new SqlCommand(@"
+                INSERT INTO Payments (eventBookingId, amount, method, status)
+                VALUES (@eid, @amt, 'In Person', 'COMPLETED')", conn))
+            {
+                cmd.Parameters.AddWithValue("@eid", eventBookingId);
+                cmd.Parameters.AddWithValue("@amt", amount);
+                cmd.ExecuteNonQuery();
+            }
+
+            using (var cmd = new SqlCommand(
+                "UPDATE EventBookings SET status = 'CONFIRMED' WHERE eventBookingId = @id", conn))
+            {
+                cmd.Parameters.AddWithValue("@id", eventBookingId);
+                cmd.ExecuteNonQuery();
+            }
+
+            SuccessMessage = "Payment confirmed successfully.";
+            LoadBookings();
+            return Page();
         }
 
         private void LoadBookings()
