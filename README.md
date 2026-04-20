@@ -33,13 +33,18 @@ Traditional hotel booking methods require customers to call or physically visit 
 - Browse rooms with real-time availability status
 - Book rooms — nightly or hourly
 - Browse and reserve hotel events
+- Pay for room bookings and event reservations online or in person
 - View booking and event reservation history
 - Cancel confirmed bookings and event reservations
+- Live chat support with hotel staff (text + file attachments)
+- Floating chat bubble with unread message indicator on all pages
 
 ### Staff Module
 - View live hotel metrics (revenue, occupancy, check-ins)
 - Check-in and check-out guests
 - View all room bookings and event bookings
+- Live chat inbox — view and reply to all customer conversations (text + file attachments)
+- Real-time unread message badge across all staff pages
 
 ### Admin Module
 - All staff capabilities
@@ -47,6 +52,7 @@ Traditional hotel booking methods require customers to call or physically visit 
 - Create, edit, and delete events (with image upload)
 - Generate and export reports (Excel & PDF)
 - Read customer contact messages
+- Manage staff accounts
 
 ### Room Management
 - Real-time availability derived from active bookings
@@ -58,6 +64,21 @@ Traditional hotel booking methods require customers to call or physically visit 
 - Capacity tracking (spots calculated dynamically)
 - Image upload per event
 - Duplicate booking prevention per user
+
+### Payment Module
+- Supports both room bookings and event reservations
+- Payment methods: Credit Card, Debit Card, PayPal, In Person
+- Online payments immediately confirm the booking
+- In-person payments create a PENDING payment record for staff to process
+- Payment records stored in the `Payments` table linked to either `bookingId` or `eventBookingId`
+
+### Live Chat Module
+- Real-time customer-to-staff messaging via polling (every 3 seconds)
+- File attachment support (images, PDFs, Office docs, videos — max 10 MB)
+- Files saved to `wwwroot/uploads/chat/` with GUID-prefixed names
+- Staff inbox groups conversations by customer with unread counts
+- Floating chat bubble on all customer-facing pages with red pulse dot for unread replies
+- Staff sidebar badge updated every 10 seconds across all staff pages
 
 ---
 
@@ -71,6 +92,7 @@ Traditional hotel booking methods require customers to call or physically visit 
 | Database | Microsoft SQL Server (LocalDB) |
 | Data Access | ADO.NET (`SqlConnection`, `SqlCommand`) |
 | Messaging | Apache ActiveMQ 2.1.1 (Apache.NMS) |
+| File Storage | Local filesystem (`wwwroot/uploads/chat/`) |
 | Email | Gmail SMTP via `System.Net.Mail` |
 | OTP | Session-based, delivered via ActiveMQ + SMTP |
 | Excel Export | ClosedXML |
@@ -90,9 +112,9 @@ Traditional hotel booking methods require customers to call or physically visit 
 | `EventBookings` | Event reservations |
 | `ContactMessages` | Customer contact form submissions |
 | `OtpCodes` | OTP schema (runtime OTP stored in session) |
-| `Payments` | Payment tracking (schema defined, not yet implemented) |
+| `Payments` | Payment records for room bookings and event reservations |
 | `Reports` | Report storage (schema defined, not yet implemented) |
-| `ChatMessages` | Messaging (schema defined, not yet implemented) |
+| `ChatMessages` | Customer-staff live chat messages and file attachments |
 
 ---
 
@@ -103,7 +125,9 @@ Traditional hotel booking methods require customers to call or physically visit 
 | `/` (Index) | Public | Home page with featured events |
 | `/Rooms` | Public | Browse all rooms with availability |
 | `/BookRoom/{id}` | Customer | Book a specific room |
+| `/Customer/Payment` | Customer | Pay for a room booking or event reservation |
 | `/BookingConfirmed` | Customer | Booking success confirmation |
+| `/Customer/Chat` | Customer | Live chat with hotel staff |
 | `/MyBookings` | Customer | View and cancel bookings & event reservations |
 | `/Events` | Public | Browse and reserve events |
 | `/BookEvent/{id}` | Customer | Reserve a specific event |
@@ -119,6 +143,8 @@ Traditional hotel booking methods require customers to call or physically visit 
 | `/Staff/Events` | Admin only | Add, edit, delete events |
 | `/Staff/Reports` | Admin only | Revenue reports, Excel/PDF export |
 | `/Staff/Messages` | Admin only | Customer contact inbox |
+| `/Staff/Chat` | Staff + Admin | Customer chat inbox and reply panel |
+| `/Staff/ManageStaff` | Admin only | Add and manage staff accounts |
 
 ---
 
@@ -148,6 +174,9 @@ See [`OTP_EXPLAINED.md`](./OTP_EXPLAINED.md) for the full breakdown.
 - Only `CONFIRMED` bookings can be cancelled by customers
 - Rooms with active `CHECKED_IN` guests cannot be toggled to maintenance
 - Event capacity is tracked dynamically — cancellations free up spots
+- Online payments immediately set booking/event status to `CONFIRMED`
+- In-person payments leave status as `PENDING` until processed by staff
+- Chat file uploads are restricted to images, documents, and videos (max 10 MB)
 
 ---
 
@@ -162,6 +191,8 @@ See [`OTP_EXPLAINED.md`](./OTP_EXPLAINED.md) for the full breakdown.
 │   │   ├── BookEvent.cshtml
 │   │   ├── BookingConfirmed.cshtml
 │   │   ├── MyBookings.cshtml
+│   │   ├── Payment.cshtml
+│   │   ├── Chat.cshtml
 │   │   └── VerifyOtp.cshtml
 │   ├── Login.cshtml     # Email login
 │   ├── Signup.cshtml    # Registration
@@ -175,6 +206,8 @@ See [`OTP_EXPLAINED.md`](./OTP_EXPLAINED.md) for the full breakdown.
 ├── wwwroot/
 │   ├── css/             # Page-specific stylesheets
 │   ├── Images/          # Room and event images
+│   ├── uploads/
+│   │   └── chat/        # Customer and staff chat file attachments
 │   └── js/
 ├── docs/                # Feature implementation docs
 ├── appsettings.json     # DB, SMTP, and ActiveMQ config

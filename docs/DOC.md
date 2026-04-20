@@ -18,7 +18,8 @@ This folder contains detailed implementation breakdowns for every feature in the
 | [EVENTS.md](./EVENTS.md) | Event browsing, booking, capacity tracking, admin CRUD |
 | [REPORTS.md](./REPORTS.md) | Revenue metrics, Excel export (ClosedXML), PDF export (iText7) |
 | [CONTACT_MESSAGES.md](./CONTACT_MESSAGES.md) | Contact form submission, admin inbox, mark as read |
-| [CHAT.md](./CHAT.md) | Live chat support — customer ↔ staff messaging with file attachments |
+| [PAYMENT.md](./PAYMENT.md) | Payment flow for room bookings and event reservations, online vs in-person |
+| [CHAT.md](./CHAT.md) | Live chat — customer ↔ staff messaging, file attachments, polling, unread badges |
 
 ---
 
@@ -48,6 +49,6 @@ This folder contains detailed implementation breakdowns for every feature in the
 | `EventBookings` | Event reservations |
 | `ContactMessages` | Customer contact form submissions |
 | `OtpCodes` | (Schema defined, OTP stored in session at runtime) |
-| `Payments` | (Schema defined, not yet implemented) |
-| `Reports` | (Schema defined, not yet implemented) |
+| `Payments` | Payment records for room bookings and event reservations |
+| `Reports` | Report storage (schema defined, not yet implemented) |
 | `ChatMessages` | Live chat messages between customers and staff (with file attachments) |

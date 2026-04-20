@@ -1,340 +1,418 @@
-# Chat Support System — Feature Documentation
+# Live Chat — How It Works
 
-> **Module:** Live Chat Support  
-> **Route (Customer):** `/Customer/Chat`  
-> **Route (Staff/Admin):** `/Staff/Chat`  
-> **Database Table:** `ChatMessages`  
-> **Attachment Storage:** `wwwroot/uploads/chat/`
+## Overview
 
----
+The live chat system enables real-time text and file messaging between customers and hotel staff. It consists of two pages:
 
-## 1. Overview
+- `/Customer/Chat` — the customer's chat window
+- `/Staff/Chat` — the staff inbox with a thread list and reply panel
 
-The Chat Support system allows logged-in **customers** to send real-time messages, photos, and documents to hotel staff without leaving the website. **Staff and Admin** users respond from a dedicated dual-pane inbox that shows all active customer threads.
-
-Communication is implemented with **AJAX polling** (no third-party libraries or WebSockets required), making it compatible with the existing ADO.NET + Razor Pages stack.
+Messages are delivered via **JavaScript polling** (every 3 seconds) rather than WebSockets. Both sides share the same `ChatMessages` database table.
 
 ---
 
-## 2. Architecture
-
-```
-┌─────────────────────────┐        ┌──────────────────────────┐
-│   Customer Browser      │        │    Staff Browser         │
-│  /Customer/Chat         │        │  /Staff/Chat?customerId=x│
-│                         │        │                          │
-│  [Text input]           │        │  [Thread list | Messages]│
-│  [📷] [📎] [Send ▶]    │        │  [Text input]            │
-│                         │        │  [📷] [📎] [Send ▶]     │
-└────────────┬────────────┘        └────────────┬─────────────┘
-             │  POST FormData                    │  POST FormData
-             │  GET Poll every 3s                │  GET Poll every 3s
-             ▼                                   ▼
-    ┌─────────────────────────────────────────────────┐
-    │           ASP.NET Core Razor Pages              │
-    │                                                 │
-    │  Customer/Chat.cshtml.cs                        │
-    │    OnGet()              – Load full history     │
-    │    OnPostSendAsync()    – Insert message + file │
-    │    OnGetPoll()          – Return new messages   │
-    │    OnGetHasUnread()     – Bubble dot check      │
-    │                                                 │
-    │  Staff/Chat.cshtml.cs                           │
-    │    OnGet()              – Load threads + thread │
-    │    OnPostReplyWithAttachmentAsync() – Reply     │
-    │    OnGetPoll()          – Return new messages   │
-    │    OnGetUnreadCount()   – Sidebar badge count   │
-    └────────────────────┬────────────────────────────┘
-                         │  ADO.NET (SqlConnection)
-                         ▼
-              ┌─────────────────────┐
-              │   SQL Server        │
-              │   ChatMessages      │
-              └─────────────────────┘
-```
-
----
-
-## 3. Database Schema
-
-### `ChatMessages` Table
+## Database Table
 
 ```sql
 CREATE TABLE ChatMessages (
     chatId        INT IDENTITY(1,1) PRIMARY KEY,
-    senderId      INT NOT NULL FOREIGN KEY REFERENCES Users(userId),
-    receiverId    INT NULL     FOREIGN KEY REFERENCES Users(userId),
-    messageText   VARCHAR(MAX) NOT NULL DEFAULT '',
+    senderId      INT           NOT NULL FOREIGN KEY REFERENCES Users(userId),
+    receiverId    INT           NULL     FOREIGN KEY REFERENCES Users(userId),
+    messageText   VARCHAR(MAX)  NOT NULL DEFAULT '',
     attachmentUrl NVARCHAR(500) NULL,
-    sentAt        DATETIME     NOT NULL DEFAULT GETDATE(),
-    isRead        BIT          NOT NULL DEFAULT 0
+    sentAt        DATETIME      NOT NULL DEFAULT GETDATE(),
+    isRead        BIT           NOT NULL DEFAULT 0
 );
 ```
 
-| Column | Description |
-|--------|-------------|
-| `chatId` | Auto-increment primary key; used as the polling cursor (`after` parameter) |
-| `senderId` | FK to `Users.userId` — who sent the message |
-| `receiverId` | FK to `Users.userId` — **NULL** for customer broadcasts; set to `customerId` for staff replies |
-| `messageText` | Plain-text message body (empty string `''` for attachment-only messages) |
-| `attachmentUrl` | Relative URL to the uploaded file (e.g. `/uploads/chat/abc123.pdf`), or NULL |
-| `sentAt` | UTC timestamp set by SQL Server `DEFAULT GETDATE()` |
-| `isRead` | `0` = unread, `1` = read; drives the unread badge and red dot UX |
+Key design decisions:
 
-### Addressing Convention
+| Column | Purpose |
+|--------|---------|
+| `receiverId NULL` | Customer messages are broadcast (NULL = visible to all staff). Staff replies set this to the specific customer's `userId` |
+| `attachmentUrl NULL` | Stores the relative URL of an uploaded file, or NULL if the message is text-only |
+| `isRead` | Drives unread badges — `0` = unread, `1` = read |
+| `messageText DEFAULT ''` | Allows attachment-only messages with an empty string body |
 
-| Scenario | `senderId` | `receiverId` | Meaning |
-|----------|-----------|-------------|---------|
-| Customer sends a message | `customerId` | `NULL` | Broadcast — visible to all staff |
-| Staff replies to a customer | `staffId` | `customerId` | Addressed — only this customer sees it |
-
-### Migration (for existing databases)
-
+Migration for existing databases:
 ```sql
--- Run once against HotelBookingDB if the table already exists without attachmentUrl
 ALTER TABLE ChatMessages ADD attachmentUrl NVARCHAR(500) NULL;
 ALTER TABLE ChatMessages ALTER COLUMN messageText VARCHAR(MAX) NOT NULL;
 ```
 
 ---
 
-## 4. Customer Chat (`/Customer/Chat`)
+## File Storage
 
-### Access Control
-Only users with `UserRole = "CUSTOMER"` in the session can access this page. All five handlers call `RequireCustomer()` which redirects to `/Login?returnUrl=/Customer/Chat` if the check fails.
-
-### Page Load Flow
+Uploaded files are saved to:
 
 ```
-Customer navigates to /Customer/Chat
-  └─ OnGet()
-       ├─ RequireCustomer() → redirect if not CUSTOMER
-       ├─ Set CurrentUserId (used by JavaScript)
-       ├─ LoadMessages(userId)
-       │     SELECT all rows WHERE senderId=me OR receiverId=me
-       │     ORDER BY chatId ASC
-       └─ Return rendered page with full history
+wwwroot/uploads/chat/<guid><extension>
 ```
 
-### Sending a Message
-
-The send button and Enter key both call `sendMsg()` in JavaScript. It builds a `FormData` object and POSTs to `OnPostSendAsync`:
-
-```
-sendMsg() in browser
-  └─ FormData { text: "...", attachment: File|null }
-       └─ POST /Customer/Chat?handler=Send
-            └─ OnPostSendAsync()
-                 ├─ Validate: text or file must be present
-                 ├─ If file:
-                 │     ├─ Size check ≤ 10 MB
-                 │     ├─ Extension check (allow-list)
-                 │     ├─ Save to wwwroot/uploads/chat/{GUID}.ext
-                 │     └─ Set attachmentUrl = "/uploads/chat/{GUID}.ext"
-                 └─ INSERT INTO ChatMessages (senderId=me, receiverId=NULL, ...)
-```
-
-### Real-time Polling
-
-Every **3 seconds** the browser calls `poll()`:
-
-```
-poll() [every 3s]
-  └─ GET /Customer/Chat?handler=Poll&after={lastId}
-       └─ OnGetPoll(after)
-            └─ SELECT WHERE (senderId=me OR receiverId=me) AND chatId > @after
-                 └─ Return JSON array of new messages
-```
-
-The browser appends each new message bubble to the chat area and advances `lastId` to the highest `chatId` received.
-
-### Floating Chat Bubble (all pages)
-
-A floating gold headset icon appears on all public pages for logged-in customers. It polls every **8 seconds**:
-
-```
-(async) checkUnread() [every 8s]
-  └─ GET /Customer/Chat?handler=HasUnread
-       └─ OnGetHasUnread()
-            └─ SELECT COUNT(*) WHERE receiverId=me AND isRead=0
-                 └─ { hasUnread: true/false }
-```
-
-If `hasUnread = true`, a red pulse dot appears on the bubble icon to prompt the customer to open the chat.
+- The GUID prefix prevents filename collisions when multiple users upload files with the same name
+- The relative URL stored in the database (`/uploads/chat/<filename>`) is served directly by ASP.NET Core's static file middleware
+- The `wwwroot/uploads/chat/` directory is created automatically on first upload if it does not exist
 
 ---
 
-## 5. Staff Chat (`/Staff/Chat`)
+## Customer Chat (`/Customer/Chat`)
 
 ### Access Control
-Accessible to `UserRole = "STAFF"` or `UserRole = "ADMIN"`. `IsStaff()` guards every handler and redirects to `/Login?returnUrl=/Staff/Chat` on failure.
 
-### Page Layout
+```csharp
+private IActionResult? RequireCustomer()
+{
+    var role = HttpContext.Session.GetString("UserRole");
+    if (role != "CUSTOMER") return Redirect("/Login?returnUrl=/Customer/Chat");
+    return null;
+}
+```
 
-The page is split into two panels:
+Only `CUSTOMER` sessions can access this page or its AJAX endpoints.
 
-| Panel | Content |
-|-------|---------|
-| **Left (300 px)** | Scrollable list of all customers who have sent at least one message |
-| **Right (flex)** | The selected conversation with message history and reply input |
+---
 
-Clicking a thread item navigates to `/Staff/Chat?customerId={id}`, which reloads the page with that thread active.
+### Page Load — `OnGet()`
 
-### Thread List (Left Panel)
+1. Calls `RequireCustomer()` — redirects if not a customer
+2. Sets `CurrentUserId` and `CustomerName` from session
+3. Calls `LoadMessages(userId)` to pre-render the full conversation history server-side
 
-`LoadThreads()` runs a single SQL query using correlated sub-queries to produce the thread list in one database round-trip:
+`CurrentUserId` is embedded into the Razor view so JavaScript can determine which bubbles belong to "me":
+
+```razor
+int myId = Model.CurrentUserId;
+// ...
+const myId = @myId;
+```
+
+---
+
+### Loading History — `LoadMessages(int userId)`
 
 ```sql
-SELECT
-    u.userId, u.fullName,
-    (SELECT TOP 1 messageText ... ORDER BY chatId DESC) AS LastMessage,
-    (SELECT TOP 1 sentAt      ... ORDER BY chatId DESC) AS LastSentAt,
-    (SELECT COUNT(*) WHERE senderId=u.userId AND isRead=0)  AS UnreadCount,
-    (SELECT TOP 1 chatId      ... ORDER BY chatId DESC) AS LastChatId
+SELECT c.chatId, c.senderId, c.messageText, c.attachmentUrl, c.sentAt,
+       u.fullName, u.role
+FROM ChatMessages c
+JOIN Users u ON c.senderId = u.userId
+WHERE c.senderId = @me OR c.receiverId = @me
+ORDER BY c.chatId ASC
+```
+
+Scope:
+- Messages **sent by** this customer (`senderId = me`)
+- Messages **sent to** this customer by staff (`receiverId = me`)
+- Ordered oldest-first so bubbles render in natural reading order
+
+`attachmentUrl` is mapped from SQL `NULL` to an empty string so the Razor view can safely use `string.IsNullOrEmpty()`.
+
+---
+
+### Sending a Message — `OnPostSendAsync()`
+
+Called by the JavaScript `sendMsg()` function via a `multipart/form-data` POST.
+
+**Parameters (from FormData):**
+- `text` — optional plain-text body
+- `attachment` — optional `IFormFile`
+
+**File upload validation:**
+```csharp
+// Size limit
+if (attachment.Length > 10 * 1024 * 1024)
+    return new JsonResult(new { ok = false, error = "File too large (max 10 MB)" });
+
+// Extension allow-list
+var allowed = new[] { ".jpg",".jpeg",".png",".gif",".webp",
+                      ".pdf",".doc",".docx",".txt",".xlsx",".pptx" };
+```
+
+**File save:**
+```csharp
+var uniqueName = $"{Guid.NewGuid()}{ext}";
+var filePath   = Path.Combine(_env.WebRootPath, "uploads", "chat", uniqueName);
+await using (var fs = new FileStream(filePath, FileMode.Create))
+    await attachment.CopyToAsync(fs);
+attachmentUrl = $"/uploads/chat/{uniqueName}";
+```
+
+**Database insert:**
+```sql
+INSERT INTO ChatMessages (senderId, receiverId, messageText, attachmentUrl, isRead)
+VALUES (@s, NULL, @t, @a, 0)
+```
+
+`receiverId = NULL` means the message is broadcast — any staff member can see it.
+
+Returns `{ ok: true }` on success or `{ ok: false, error: "..." }` on validation failure.
+
+---
+
+### Real-time Polling — `OnGetPoll(int after)`
+
+Called by JavaScript every 3 seconds while the chat page is open.
+
+```sql
+SELECT c.chatId, c.senderId, c.messageText, c.attachmentUrl, c.sentAt,
+       u.fullName, u.role
+FROM ChatMessages c
+JOIN Users u ON c.senderId = u.userId
+WHERE (c.senderId = @me OR c.receiverId = @me)
+  AND c.chatId > @after
+ORDER BY c.chatId ASC
+```
+
+- `@after` is the `chatId` of the last message the browser already has — only newer rows are returned
+- The browser updates its local `lastId` to the highest `chatId` received
+- Returns a JSON array; the JS `renderBubble()` function appends each new message to the DOM
+
+---
+
+### Unread Indicator — `OnGetHasUnread()`
+
+Polled every 8 seconds by the floating chat bubble in `_Layout.cshtml`.
+
+```sql
+SELECT COUNT(*) FROM ChatMessages WHERE receiverId = @me AND isRead = 0
+```
+
+Returns `{ hasUnread: true/false }`. The JavaScript shows or hides the red pulse dot on the bubble icon.
+
+---
+
+## Staff Chat (`/Staff/Chat`)
+
+### Access Control
+
+```csharp
+private bool IsStaff()
+{
+    var role = HttpContext.Session.GetString("UserRole");
+    return role == "STAFF" || role == "ADMIN";
+}
+```
+
+Both `STAFF` and `ADMIN` roles can access the staff chat page.
+
+---
+
+### Two-Panel Layout
+
+The page uses a split layout:
+
+- **Left panel** — scrollable thread list, one row per customer who has sent at least one message
+- **Right panel** — full conversation history for the selected thread, with a reply input at the bottom
+
+A thread is selected by navigating to `/Staff/Chat?customerId=X`.
+
+---
+
+### Loading Threads — `LoadThreads()`
+
+Builds the left panel with one query using correlated sub-queries:
+
+```sql
+SELECT DISTINCT
+    u.userId   AS CustomerId,
+    u.fullName AS CustomerName,
+    COALESCE((
+        SELECT TOP 1 m.messageText FROM ChatMessages m
+        WHERE m.senderId = u.userId OR m.receiverId = u.userId
+        ORDER BY m.chatId DESC
+    ), 'No messages') AS LastMessage,
+    COALESCE((
+        SELECT TOP 1 m.sentAt FROM ChatMessages m
+        WHERE m.senderId = u.userId OR m.receiverId = u.userId
+        ORDER BY m.chatId DESC
+    ), GETDATE()) AS LastSentAt,
+    COALESCE((
+        SELECT COUNT(*) FROM ChatMessages m
+        WHERE m.senderId = u.userId AND m.isRead = 0
+    ), 0) AS UnreadCount,
+    COALESCE((
+        SELECT TOP 1 m.chatId FROM ChatMessages m
+        WHERE m.senderId = u.userId OR m.receiverId = u.userId
+        ORDER BY m.chatId DESC
+    ), 0) AS LastChatId
 FROM Users u
 WHERE u.role = 'CUSTOMER'
-  AND EXISTS (SELECT 1 FROM ChatMessages WHERE senderId=u.userId OR receiverId=u.userId)
+  AND EXISTS (
+      SELECT 1 FROM ChatMessages m
+      WHERE m.senderId = u.userId OR m.receiverId = u.userId
+  )
 ORDER BY LastSentAt DESC
 ```
 
-Threads with unread messages show a gold dot indicator.
-
-### Replying to a Customer
-
-```
-sendMessage() in browser
-  └─ FormData { text: "...", customerId: N, attachment: File|null }
-       └─ POST /Staff/Chat?handler=ReplyWithAttachment
-            └─ OnPostReplyWithAttachmentAsync()
-                 ├─ Validate: text or file must be present
-                 ├─ If file: size check + extension check + save to wwwroot/uploads/chat/
-                 └─ INSERT INTO ChatMessages (senderId=staffId, receiverId=customerId, isRead=1)
-```
-
-Staff replies set `receiverId = customerId` so the customer's `HasUnread` query can find them, and `isRead = 1` (staff don't need to be notified of their own replies).
-
-### Real-time Polling (Right Panel)
-
-Every **3 seconds** while a thread is open:
-
-```
-poll() [every 3s]
-  └─ GET /Staff/Chat?handler=Poll&customerId={id}&after={lastId}
-       └─ OnGetPoll(customerId, after)
-            ├─ UPDATE ChatMessages SET isRead=1 WHERE senderId=customerId AND isRead=0
-            └─ SELECT WHERE (senderId=cid OR receiverId=cid) AND chatId > @after
-```
-
-The `UPDATE` in the poll marks new customer messages as read the moment the staff sees them.
-
-### Sidebar Unread Badge
-
-The staff layout (`_StaffLayout.cshtml`) polls every **10 seconds** from any staff page:
-
-```
-pollChatUnread() [every 10s, on every staff page]
-  └─ GET /Staff/Chat?handler=UnreadCount
-       └─ OnGetUnreadCount()
-            └─ SELECT COUNT(*) WHERE receiverId IS NULL AND isRead=0
-                 └─ { count: N }
-```
-
-If `count > 0` the badge shows the number in red next to "Chat Support" in the sidebar.
+- Only customers with at least one message appear in the list
+- Ordered by most recent activity so the most active thread is always at the top
+- `UnreadTotal` is computed as the sum of all thread `UnreadCount` values for the page header badge
 
 ---
 
-## 6. File Attachment System
+### Loading a Thread — `LoadMessages(int customerId)`
 
-### Supported File Types
+```sql
+SELECT c.chatId, c.senderId, c.messageText, c.attachmentUrl, c.sentAt,
+       u.fullName, u.role
+FROM ChatMessages c
+INNER JOIN Users u ON c.senderId = u.userId
+WHERE c.senderId = @cid OR c.receiverId = @cid
+ORDER BY c.chatId ASC
+```
 
-| Category | Extensions |
-|----------|-----------|
-| Images | `.jpg` `.jpeg` `.png` `.gif` `.webp` |
-| Documents | `.pdf` `.doc` `.docx` `.txt` `.xlsx` `.pptx` |
-| Videos (staff only) | `.mp4` `.webm` `.ogg` `.mov` |
+The sender's `role` is used to set `IsFromStaff`, which controls bubble direction:
+- `IsFromStaff = true` → gold bubble on the right (staff sent it)
+- `IsFromStaff = false` → grey bubble on the left (customer sent it)
 
-### Upload Flow
+---
 
-1. User clicks 📷 (photo) or 📎 (document) button
-2. Browser opens OS file picker filtered to the accepted types
-3. `handleFile(file)` validates size client-side (≤ 10 MB) and shows a preview strip
-4. On send, `currentFile` is appended to the `FormData` alongside the text
-5. Server validates size and extension again (server-side is the true guard)
-6. File is saved to `wwwroot/uploads/chat/{GUID}.ext`
-7. The relative URL `/uploads/chat/{GUID}.ext` is stored in `ChatMessages.attachmentUrl`
+### Marking a Thread as Read — `MarkThreadRead(int customerId)`
 
-### Serving Attachments
+Called when a staff member opens a thread:
 
-Files in `wwwroot/` are served as static files by ASP.NET Core's `MapStaticAssets()`. No special routing is needed — the browser fetches the URL directly.
+```sql
+UPDATE ChatMessages
+SET isRead = 1
+WHERE senderId = @cid AND isRead = 0
+```
 
-### Display in Chat
+This clears the unread badge for that thread immediately on page load.
+
+---
+
+### Replying — `OnPostReplyWithAttachmentAsync()`
+
+Called by the staff reply form via `multipart/form-data` POST.
+
+**Parameters:**
+- `text` — optional plain-text reply
+- `customerId` — the customer being replied to
+- `attachment` — optional `IFormFile`
+
+File validation is identical to the customer side, with the addition of video formats:
+
+```csharp
+var allowedExtensions = new[]
+{
+    ".jpg", ".jpeg", ".png", ".gif", ".webp",
+    ".pdf", ".doc", ".docx", ".txt", ".xlsx", ".pptx",
+    ".mp4", ".webm", ".ogg", ".mov"   // videos (staff side only)
+};
+```
+
+**Database insert:**
+```sql
+INSERT INTO ChatMessages (senderId, receiverId, messageText, attachmentUrl, isRead, sentAt)
+VALUES (@s, @r, @t, @a, 1, GETDATE())
+```
+
+- `receiverId = customerId` — the reply is addressed to the specific customer
+- `isRead = 1` — staff replies start as read (staff don't need to mark their own messages)
+
+---
+
+### Staff Polling — `OnGetPoll(int customerId, int after)`
+
+Called every 3 seconds while a thread is open.
+
+```sql
+SELECT c.chatId, c.senderId, c.messageText, c.attachmentUrl, c.sentAt,
+       u.fullName, u.role
+FROM ChatMessages c
+INNER JOIN Users u ON c.senderId = u.userId
+WHERE (c.senderId = @cid OR c.receiverId = @cid)
+  AND c.chatId > @after
+ORDER BY c.chatId ASC
+```
+
+Side-effect: also marks new customer messages as read in real time:
+
+```sql
+UPDATE ChatMessages SET isRead = 1
+WHERE senderId = @cid AND receiverId IS NULL AND isRead = 0
+```
+
+This means the unread badge drops without requiring a full page reload.
+
+---
+
+### Sidebar Unread Badge — `OnGetUnreadCount()`
+
+Polled every 10 seconds by the script in `_StaffLayout.cshtml` so the badge stays current on **all** staff pages, not just the Chat page.
+
+```sql
+SELECT COUNT(*) FROM ChatMessages WHERE receiverId IS NULL AND isRead = 0
+```
+
+Returns `{ count: N }`. The sidebar JavaScript shows or hides the badge accordingly.
+
+---
+
+## Attachment Rendering
+
+Both the Razor server-render and the JavaScript poll use the same rendering logic:
 
 | File type | Rendered as |
-|-----------|------------|
-| Image | `<img>` tag, click to open full size in new tab |
-| Document / other | Download link with file icon and filename |
+|-----------|-------------|
+| `.jpg`, `.jpeg`, `.png`, `.gif`, `.webp` | `<img>` tag, clickable to open full size in a new tab |
+| `.mp4`, `.webm`, `.ogg`, `.mov` | `<video controls>` element (staff side only) |
+| All other types | Styled download link with file icon and filename |
 
 ---
 
-## 7. CSS Classes Reference (`Chat.css`)
+## Floating Chat Bubble
 
-| Class | Used by | Description |
-|-------|---------|-------------|
-| `.chat-bubble-btn` | `_Layout` | The floating headset button on public pages |
-| `.chat-bubble-dot` | `_Layout` | Red pulse dot shown when unread replies exist |
-| `.chat-page-wrap` | Customer view | Outer container for the customer chat page |
-| `.chat-window` | Customer view | White card containing messages + input |
-| `.chat-messages-area` | Both | Scrollable message list |
-| `.chat-msg.sent` | Both | Gold bubble, right-aligned (sent by current user) |
-| `.chat-msg.recv` | Both | Grey bubble, left-aligned (received from other) |
-| `.chat-msg-bubble` | Both | The rounded bubble shape |
-| `.chat-msg-meta` | Both | Sender name + timestamp below the bubble |
-| `.chat-input-area` | Both | Bottom bar holding the input and buttons |
-| `.chat-input-box` | Both | The `<textarea>` element |
-| `.chat-send-btn` | Both | Gold circular send button |
-| `.chat-staff-wrap` | Staff view | Two-column grid (thread list + reply panel) |
-| `.chat-thread-list` | Staff view | Left panel container |
-| `.chat-thread-item` | Staff view | One row in the thread list |
-| `.thread-unread-dot` | Staff view | Gold dot on threads with unread messages |
-| `.chat-reply-panel` | Staff view | Right panel container |
-| `.nav-unread-badge` | `_StaffLayout` | Red badge on the sidebar nav item |
+The bubble is rendered in `_Layout.cshtml` and appears on all customer-facing pages. It polls `OnGetHasUnread` every 8 seconds. When `hasUnread: true` is returned, a red pulsing dot is shown on the bubble icon to alert the customer of a new staff reply.
 
 ---
 
-## 8. Polling Interval Summary
+## Full Flow
 
-| Poller | Location | Interval | Purpose |
-|--------|----------|----------|---------|
-| Customer message poll | `Customer/Chat.cshtml` | 3 s | Receive new staff replies |
-| Staff message poll | `Staff/Chat.cshtml` | 3 s | Receive new customer messages |
-| Floating bubble dot | `_Layout.cshtml` | 8 s | Show/hide unread indicator |
-| Sidebar badge | `_StaffLayout.cshtml` | 10 s | Show unread count on all staff pages |
+### Customer sends a message
 
----
+```
+Customer types message / selects file → clicks Send (or presses Enter)
+        │
+        ▼
+JavaScript builds FormData { text, attachment }
+        │
+        ▼
+POST /Customer/Chat?handler=Send
+        │
+        ├── Validate: not empty, file ≤ 10 MB, allowed extension
+        ├── Save file to wwwroot/uploads/chat/<guid><ext>
+        │
+        ▼
+INSERT INTO ChatMessages (senderId=customer, receiverId=NULL, ...)
+        │
+        ▼
+poll() called immediately → new bubble appended to chat area
+```
 
-## 9. Security Considerations
+### Staff replies
 
-| Measure | Where |
-|---------|-------|
-| Role-based access guard on every handler | `RequireCustomer()` / `IsStaff()` |
-| Anti-forgery token on all POST requests | `@Html.AntiForgeryToken()` + `RequestVerificationToken` header |
-| File extension allow-list (server-side) | `OnPostSendAsync`, `OnPostReplyWithAttachmentAsync` |
-| File size limit 10 MB (client + server) | JS `handleFile()` + server-side `attachment.Length` check |
-| GUID-prefixed filenames | Prevents path traversal and filename guessing |
-| SQL parameters (`@param`) everywhere | Prevents SQL injection |
-
----
-
-## 10. Related Files
-
-| File | Role |
-|------|------|
-| `Pages/Customer/Chat.cshtml` | Customer chat Razor view |
-| `Pages/Customer/Chat.cshtml.cs` | Customer chat page model |
-| `Pages/Staff/Chat.cshtml` | Staff chat Razor view |
-| `Pages/Staff/Chat.cshtml.cs` | Staff chat page model |
-| `wwwroot/css/Chat.css` | All chat-related styles |
-| `Pages/Shared/_Layout.cshtml` | Floating bubble + HasUnread polling |
-| `Pages/Shared/_StaffLayout.cshtml` | Sidebar nav item + UnreadCount badge |
-| `database.txt` | `ChatMessages` schema + migration SQL |
-| `wwwroot/uploads/chat/` | Runtime file upload storage directory |
+```
+Staff selects thread → /Staff/Chat?customerId=X
+        │
+        ▼
+LoadThreads() + LoadMessages(X) + MarkThreadRead(X)
+        │
+Staff types reply / selects file → clicks Send
+        │
+        ▼
+POST /Staff/Chat?handler=ReplyWithAttachment { text, customerId, attachment }
+        │
+        ├── Validate file (size + extension)
+        ├── Save file to wwwroot/uploads/chat/<guid><ext>
+        │
+        ▼
+INSERT INTO ChatMessages (senderId=staff, receiverId=customer, isRead=1, ...)
+        │
+        ▼
+poll() called immediately → reply bubble appears in staff panel
+        │
+        ▼
+Customer's poll (every 3 s) picks up the reply → bubble appears on customer side
+Customer's HasUnread poll (every 8 s) → red dot shown on chat bubble
+```

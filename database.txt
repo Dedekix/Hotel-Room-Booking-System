@@ -104,6 +104,18 @@ CREATE TABLE ChatMessages (
 -- ALTER TABLE ChatMessages ADD attachmentUrl NVARCHAR(500) NULL;
 -- ALTER TABLE ChatMessages ALTER COLUMN messageText VARCHAR(MAX) NOT NULL;
 
+
+
+
+ALTER TABLE Events ADD imagePath NVARCHAR(255) NULL;
+
+ALTER TABLE Payments ADD eventBookingId INT NULL FOREIGN KEY REFERENCES EventBookings(eventBookingId);
+
+ALTER TABLE Payments ALTER COLUMN bookingId INT NULL;
+
+
+
+
 INSERT INTO Rooms (roomNumber, type, pricePerNight, capacity, isAvailable, description) VALUES
 -- SINGLE
 ('101', 'SINGLE', 89.99,  1, 1, 'Cozy single room with a queen bed and city view'),
@@ -156,10 +168,3 @@ INSERT INTO EventBookings (eventId, userId, status) VALUES
 (2, 3, 'CONFIRMED'),
 (3, 4, 'CONFIRMED'),
 (4, 2, 'CONFIRMED');
-
-
-ALTER TABLE Events ADD imagePath NVARCHAR(255) NULL;
-
-ALTER TABLE Payments ADD eventBookingId INT NULL FOREIGN KEY REFERENCES EventBookings(eventBookingId);
-
-ALTER TABLE Payments ALTER COLUMN bookingId INT NULL;
