@@ -113,7 +113,7 @@ Traditional hotel booking methods require customers to call or physically visit 
 | `ContactMessages` | Customer contact form submissions |
 | `OtpCodes` | OTP schema (runtime OTP stored in session) |
 | `Payments` | Payment records for room bookings and event reservations |
-| `Reports` | Report storage (schema defined, not yet implemented) |
+| `Reports` | reports are generated dynamically) |
 | `ChatMessages` | Customer-staff live chat messages and file attachments |
 
 ---
@@ -146,24 +146,7 @@ Traditional hotel booking methods require customers to call or physically visit 
 | `/Staff/Chat` | Staff + Admin | Customer chat inbox and reply panel |
 | `/Staff/ManageStaff` | Admin only | Add and manage staff accounts |
 
----
 
-## OTP Authentication Flow
-
-Customers are required to verify their identity via a one-time password on every login:
-
-```
-Customer enters email → OTP generated → published to ActiveMQ queue
-→ OtpEmailConsumer (background service) picks it up
-→ sends OTP via Gmail SMTP → customer enters code on /VerifyOtp
-→ session established → redirected to home
-```
-
-Staff and admins bypass OTP and log in directly.
-
-See [`OTP_EXPLAINED.md`](./OTP_EXPLAINED.md) for the full breakdown.
-
----
 
 ## Validation & Business Rules
 - Email must be unique per user
