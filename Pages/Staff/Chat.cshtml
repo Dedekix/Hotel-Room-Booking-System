@@ -1,0 +1,469 @@
+@* ============================================================
+   Staff/Chat.cshtml  —  Staff Chat Support Dashboard
+   ============================================================
+   This page provides the staff-facing interface for managing customer
+   conversations. It features a two-panel layout:
+   
+   1. Left Panel (Thread List) – Shows all customers who have started a chat. 
+      Displays message previews and unread badges.
+   2. Right Panel (Message View) – Shows the full conversation history for
+      the selected customer. Includes support for real-time message polling
+      and sending replies with attachments (photos, docs, etc.)
+   ============================================================ *@
+@page
+@model HotelBookingSystem.Pages.Staff.StaffChatModel
+@{
+    Layout = "_StaffLayout";          @* Use the staff/admin portal layout *@
+    ViewData["Title"] = "Chat Support";
+    ViewData["ActivePage"] = "Chat";
+
+    @* activeCustomerId: tracks which thread is currently being viewed 
+       based on the query string (?customerId=X) *@
+    int activeCustomerId = Model.ActiveThread?.CustomerId ?? 0;
+
+    @* lastId: tracks the highest chatId rendered in the messages area.
+       Used by the JS poll to fetch only NEW messages. *@
+    int lastId = Model.ActiveMessages.Any() ? Model.ActiveMessages.Last().ChatId : 0;
+}
+
+<!-- PAGE HEADER: Shows status and total unread count -->
+<div class="dash-header chat-staff-page-header">
+    <div>
+        <p class="dash-greeting">Live Support</p>
+        <h1 class="staff-page-title">Chat Support</h1>
+        <p class="dash-date">
+            <i class="fa-solid fa-comments"></i>
+            @Model.Threads.Count conversation@(Model.Threads.Count != 1 ? "s" : "")
+            @if (Model.UnreadTotal > 0)
+            {
+                @* If there are unread messages across ANY thread, show the total count in red *@
+                <span style="color:#e74c3c;margin-left:8px">
+                    · @Model.UnreadTotal unread
+                </span>
+            }
+        </p>
+    </div>
+</div>
+
+@Html.AntiForgeryToken()
+
+<!-- CHAT LAYOUT -->
+<div class="chat-staff-wrap">
+
+    <!-- LEFT PANEL: Thread List (scrollable area containing all active conversations) -->
+    <div class="chat-thread-list">
+        <div class="chat-thread-list-header">
+            <i class="fa-solid fa-list-ul"></i>
+            Conversations
+        </div>
+        <div class="chat-threads-scroll">
+            @if (!Model.Threads.Any())
+            {
+                @* Empty state fallback if no messages have been sent yet *@
+                <div style="padding:36px 20px;text-align:center;color:#ccc;font-size:13px;">
+                    <i class="fa-regular fa-comment-dots" style="font-size:28px;display:block;margin-bottom:10px"></i>
+                    No customer chats yet.
+                </div>
+            }
+            @foreach (var t in Model.Threads)
+            {
+                @* Each thread is an <a> link that reloads the page with a customerId parameter *@
+                <a href="/Staff/Chat?customerId=@t.CustomerId"
+                       class="chat-thread-item @(t.CustomerId == activeCustomerId ? "active" : "")">
+                    <div class="thread-avatar">@t.CustomerName[0]</div> @* Avatar shows first initial *@
+                    <div class="thread-info">
+                        <div class="thread-name">@t.CustomerName</div>
+                        @* preview logic: truncates long messages so they don't break the layout *@
+                        <div class="thread-preview">@(t.LastMessage.Length > 40 ? t.LastMessage[..40] + "…" : t.LastMessage)</div>
+                    </div>
+                    @if (t.UnreadCount > 0)
+                    {
+                        @* Show a gold dot if the customer has sent unread messages *@
+                        <div class="thread-unread-dot" title="@t.UnreadCount unread"></div>
+                    }
+                </a>
+            }
+        </div>
+    </div>
+
+    <!-- RIGHT PANEL: Reply Panel (displays the active conversation or empty state) -->
+    <div class="chat-reply-panel">
+        @if (Model.ActiveThread == null)
+        {
+            @* Case: Page loaded without a selected customerId (?customerId=x) *@
+            <div class="chat-no-thread">
+                <i class="fa-regular fa-comment-dots"></i>
+                <p>Select a conversation from the left to start replying.</p>
+            </div>
+        }
+        else
+        {
+            @* Case: A thread is active *@
+            <!-- Active Conversation Header: Shows customer name and status -->
+            <div class="chat-reply-header">
+                <div class="thread-avatar">@Model.ActiveThread.CustomerName[0]</div>
+                <div>
+                    <div class="chat-reply-header-name">@Model.ActiveThread.CustomerName</div>
+                    <div class="chat-reply-header-sub">Customer · Last active @Model.ActiveThread.LastSentAt</div>
+                </div>
+            </div>
+
+            <!-- Messages Area: Scrollable list of chat bubbles -->
+            <div class="chat-messages-area" id="chatArea">
+                @if (!Model.ActiveMessages.Any())
+                {
+                    <div class="chat-empty" id="emptyState">
+                        <i class="fa-regular fa-comments"></i>
+                        <p>No messages yet.</p>
+                    </div>
+                }
+                @foreach (var m in Model.ActiveMessages)
+                {
+                    <div class="chat-msg @(m.IsFromStaff ? "sent" : "recv")">
+                        <div class="chat-msg-bubble">
+                            @if (!string.IsNullOrEmpty(m.Text))
+                            {
+                                @* Plain-text part of the message *@
+                                <div>@m.Text</div>
+                            }
+                            @if (!string.IsNullOrEmpty(m.AttachmentUrl))
+                            {
+                                @* Rich attachment rendering: images, videos, or generic files *@
+                                var fileExt = System.IO.Path.GetExtension(m.AttachmentUrl).ToLower();
+                                if (fileExt == ".jpg" || fileExt == ".jpeg" || fileExt == ".png" || fileExt == ".gif" || fileExt == ".webp")
+                                {
+                                    <img src="@m.AttachmentUrl" alt="Image" onclick="window.open('@m.AttachmentUrl', '_blank')" style="max-width: 200px; max-height: 200px; border-radius: 8px; margin-top: 5px; cursor: pointer;" />
+                                }
+                                else if (fileExt == ".mp4" || fileExt == ".webm" || fileExt == ".ogg" || fileExt == ".mov")
+                                {
+                                    <video controls style="max-width: 200px; max-height: 200px; border-radius: 8px; margin-top: 5px;">
+                                        <source src="@m.AttachmentUrl" type="video/@fileExt.TrimStart('.')" />
+                                    </video>
+                                }
+                                else
+                                {
+                                    <a href="@m.AttachmentUrl" class="file-link" download style="display: flex; align-items: center; gap: 10px; padding: 10px; background: rgba(0,0,0,0.05); border-radius: 8px; text-decoration: none; color: inherit; margin-top: 5px;">
+                                        <i class="fa-solid fa-file"></i>
+                                        <span>@System.IO.Path.GetFileName(m.AttachmentUrl)</span>
+                                        <i class="fa-solid fa-download"></i>
+                                    </a>
+                                }
+                            }
+                        </div>
+                        <div class="chat-msg-meta">
+                            @if (!m.IsFromStaff)
+                            {
+                                @* Only show sender name for incoming customer messages *@
+                                <span class="chat-msg-sender">@m.SenderName</span><span>·</span>
+                            }
+                            @m.SentAt
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <!-- Input Area: Bottom bar with file attachment buttons and textarea -->
+            <div class="chat-input-area">
+                <div class="chat-input-wrapper">
+                    <!-- Buttons for selecting docs (generic files) or photos (image picker) -->
+                    <div class="attachment-buttons">
+                        <button type="button" class="attachment-btn" onclick="attachFile('docInput', '.pdf,.doc,.docx,.txt,.xlsx,.pptx')" title="Attach document">
+                            <i class="fa-solid fa-paperclip"></i>
+                        </button>
+                        <button type="button" class="attachment-btn" onclick="attachFile('photoInput', 'image/*')" title="Send photo">
+                            <i class="fa-solid fa-image"></i>
+                        </button>
+                    </div>
+
+                    <!-- Container for the main text input -->
+                    <div class="input-container">
+                        <textarea id="chatInput" class="chat-input-box" rows="1"
+                                  placeholder="Reply to @Model.ActiveThread.CustomerName… (Enter to send)"></textarea>
+                        <button id="sendBtn" class="chat-send-btn" title="Send">
+                            <i class="fa-solid fa-paper-plane"></i>
+                        </button>
+                    </div>
+
+                    <!-- Preview area for the currently selected file (hidden by default) -->
+                    <div id="filePreview" style="display: none; align-items: center; gap: 12px; padding: 10px; background: #f8f9fa; border-radius: 12px; margin-top: 5px;">
+                        <div id="filePreviewContent"></div>
+                        <span id="fileName" style="flex: 1; font-size: 13px; color: #1a1a1a;"></span>
+                        <button type="button" onclick="removeAttachment()" class="attachment-btn" style="color: #dc3545;">
+                            <i class="fa-solid fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<input type="file" id="docInput" class="file-input" style="display: none;" />
+<input type="file" id="photoInput" class="file-input" accept="image/*" style="display: none;" />
+
+@section Scripts {
+    <link rel="stylesheet" href="~/css/Chat.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <script>
+        (function() {
+            @* State: customerId and polling cursor (lastId) *@
+            const customerId = @activeCustomerId;
+            if (!customerId) return;
+
+            let lastId = @lastId;      @* Razor embeds the initial lastId from server state *@
+            let currentFile = null;    @* Local File object for the pending broadcast attachment *@
+
+            const area    = document.getElementById('chatArea');
+            const input   = document.getElementById('chatInput');
+            const sendBtn = document.getElementById('sendBtn');
+
+            @* Keep messages scrolled to latest on load and updates *@
+            function scrollBottom() {
+                if (area) area.scrollTop = area.scrollHeight;
+            }
+            scrollBottom();
+
+            @* Standard HTML escaping to prevent XSS *@
+            function escapeHtml(s) {
+                if (!s) return '';
+                return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+            }
+
+            @* renderBubble: Dynamically builds the HTML for a single chat message object returned by polling *@
+            function renderBubble(msg) {
+                const div = document.createElement('div');
+                div.className = 'chat-msg ' + (msg.isFromStaff ? 'sent' : 'recv');
+
+                let content = '';
+                if (msg.text) {
+                    content += `<div>${escapeHtml(msg.text)}</div>`;
+                }
+
+                @* Rich attachment rendering in pure JavaScript for polling results *@
+                if (msg.attachmentUrl) {
+                    const fileExt = msg.attachmentUrl.split('.').pop().toLowerCase();
+                    const imageExts = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'];
+                    const videoExts = ['mp4', 'webm', 'ogg', 'mov'];
+
+                    if (imageExts.includes(fileExt)) {
+                        content += `<img src="${msg.attachmentUrl}" alt="Image" onclick="window.open('${msg.attachmentUrl}', '_blank')" style="max-width: 200px; max-height: 200px; border-radius: 8px; margin-top: 5px; cursor: pointer;">`;
+                    } else if (videoExts.includes(fileExt)) {
+                        content += `<video controls style="max-width: 200px; max-height: 200px; border-radius: 8px; margin-top: 5px;">
+                                       <source src="${msg.attachmentUrl}" type="video/${fileExt}">
+                                   </video>`;
+                    } else {
+                        const fileName = msg.attachmentUrl.split('/').pop();
+                        content += `<a href="${msg.attachmentUrl}" class="file-link" download style="display: flex; align-items: center; gap: 10px; padding: 10px; background: rgba(0,0,0,0.05); border-radius: 8px; text-decoration: none; color: inherit; margin-top: 5px;">
+                                        <i class="fa-solid fa-file"></i>
+                                        <span>${escapeHtml(fileName)}</span>
+                                        <i class="fa-solid fa-download"></i>
+                                    </a>`;
+                    }
+                }
+
+                div.innerHTML = `
+                    <div class="chat-msg-bubble">${content}</div>
+                    <div class="chat-msg-meta">
+                        ${!msg.isFromStaff ? `<span class="chat-msg-sender">${escapeHtml(msg.senderName)}</span> · ` : ''}
+                        ${msg.sentAt}
+                    </div>`;
+                return div;
+            }
+
+            @* Poll: Fetch new messages since 'lastId' every 3 seconds *@
+            async function poll() {
+                try {
+                    const res  = await fetch(`/Staff/Chat?handler=Poll&customerId=${customerId}&after=${lastId}`);
+                    const msgs = await res.json();
+                    if (msgs.length) {
+                        const empty = document.getElementById('emptyState');
+                        if (empty) empty.remove(); @* Clear empty state if new messages arrive *@
+                        msgs.forEach(m => {
+                            if (area) area.appendChild(renderBubble(m));
+                            lastId = Math.max(lastId, m.chatId); @* Advance the cursor *@
+                        });
+                        scrollBottom();
+                    }
+                } catch(e) {
+                    console.log('Poll error:', e);
+                }
+            }
+
+            setInterval(poll, 3000); @* Start polling loop *@
+
+            @* sendMessage: Uses FormData (multipart/form-data) to support text + file upload in one request *@
+            async function sendMessage(text = null) {
+                const messageText = text || (input ? input.value.trim() : '');
+                if (!messageText && !currentFile) return;
+
+                const formData = new FormData();
+                if (messageText) formData.append('text', messageText);
+                if (currentFile) formData.append('attachment', currentFile);
+                formData.append('customerId', customerId);
+
+                if (input) input.value = '';
+                if (sendBtn) sendBtn.disabled = true;
+
+                if (currentFile) {
+                    showProgress(); @* Show animation for file uploads *@
+                }
+
+                try {
+                    const response = await fetch('/Staff/Chat?handler=ReplyWithAttachment', {
+                        method: 'POST',
+                        headers: { 'RequestVerificationToken': getToken() },
+                        body: formData
+                    });
+
+                    if (response.ok) {
+                        currentFile = null;
+                        hideFilePreview();
+                        await poll(); @* Immediately pull the new message down *@
+                    } else {
+                        const error = await response.text();
+                        alert('Failed to send message: ' + error);
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('Error sending message. Please try again.');
+                } finally {
+                    if (sendBtn) sendBtn.disabled = false;
+                    hideProgress();
+                    if (input) input.focus();
+                }
+            }
+
+            @* attachFile: Triggers the hidden OS file input and handles selection *@
+            function attachFile(fileInputId, acceptTypes) {
+                const fileInput = document.getElementById(fileInputId);
+                if (!fileInput) return;
+
+                fileInput.accept = acceptTypes;
+                fileInput.onchange = (e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                        handleFile(file); @* Validate and preview locally *@
+                    }
+                    fileInput.value = '';
+                };
+                fileInput.click();
+            }
+
+            @* handleFile: Validates file size (max 10MB) and builds a local UI preview *@
+            function handleFile(file) {
+                const maxSize = 10 * 1024 * 1024;
+                if (file.size > maxSize) {
+                    alert('File is too large. Maximum size is 10MB.');
+                    return;
+                }
+
+                currentFile = file;
+
+                const preview = document.getElementById('filePreview');
+                const fileName = document.getElementById('fileName');
+                const filePreviewContent = document.getElementById('filePreviewContent');
+
+                if (!preview || !fileName || !filePreviewContent) return;
+
+                if (file.type.startsWith('image/')) {
+                    @* FileReader allows showing an image preview before it hits the server *@
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        filePreviewContent.innerHTML = `<img src="${e.target.result}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 8px;">`;
+                        fileName.textContent = file.name;
+                        preview.style.display = 'flex';
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    @* Generic file icon for non-image attachments *@
+                    filePreviewContent.innerHTML = `<i class="fa-solid fa-file" style="font-size: 2rem; color: #b07a2a;"></i>`;
+                    fileName.textContent = file.name;
+                    preview.style.display = 'flex';
+                }
+            }
+
+            @* showProgress: Manual UI progress bar animation for the upload lifecycle *@
+            function showProgress() {
+                let progress = document.getElementById('uploadProgress');
+                if (!progress) {
+                    progress = document.createElement('div');
+                    progress.id = 'uploadProgress';
+                    progress.className = 'progress-bar';
+                    progress.innerHTML = '<div class="progress-fill"></div>';
+
+                    const inputArea = document.querySelector('.chat-input-area');
+                    if (inputArea) {
+                        inputArea.appendChild(progress);
+                    }
+                }
+
+                progress.style.display = 'block';
+                const fill = progress.querySelector('.progress-fill');
+                let width = 0;
+                const interval = setInterval(() => {
+                    if (width >= 90) clearInterval(interval); @* Artificial progress up to 90% *@
+                    width += 10;
+                    if (fill) fill.style.width = width + '%';
+                }, 200);
+
+                window.uploadInterval = interval;
+            }
+
+            function hideProgress() {
+                const progress = document.getElementById('uploadProgress');
+                if (progress) {
+                    progress.style.display = 'none';
+                    const fill = progress.querySelector('.progress-fill');
+                    if (fill) fill.style.width = '0%';
+                }
+                if (window.uploadInterval) {
+                    clearInterval(window.uploadInterval);
+                    window.uploadInterval = null;
+                }
+            }
+
+            @* hideFilePreview: Clears the local file UI after send or removal *@
+            function hideFilePreview() {
+                const preview = document.getElementById('filePreview');
+                if (preview) {
+                    preview.style.display = 'none';
+                    const content = document.getElementById('filePreviewContent');
+                    const fileName = document.getElementById('fileName');
+                    if (content) content.innerHTML = '';
+                    if (fileName) fileName.textContent = '';
+                }
+            }
+
+            function removeAttachment() {
+                currentFile = null;
+                hideFilePreview();
+            }
+
+            @* getToken: Retrieves the CSRF token emitted by Razor for AJAX security *@
+            function getToken() {
+                const el = document.querySelector('input[name="__RequestVerificationToken"]');
+                return el ? el.value : '';
+            }
+
+            // Keyboard/Click listeners
+            if (sendBtn) {
+                sendBtn.addEventListener('click', () => sendMessage());
+            }
+
+            if (input) {
+                input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        sendMessage();
+                    }
+                });
+            }
+
+            // Expose logic to the global window so onclick attributes can resolve them
+            window.attachFile = attachFile;
+            window.removeAttachment = removeAttachment;
+
+            poll(); @* Kick off polling immediately *@
+        })();
+    </script>
+}

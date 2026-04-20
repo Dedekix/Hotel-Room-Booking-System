@@ -7,6 +7,7 @@
     <script type="importmap"></script>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/Staff.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/Chat.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
     <script src="~/js/site.js" asp-append-version="true" defer></script>
@@ -56,6 +57,10 @@
                 </a>
                 <a href="/Staff/EventBookings" class="nav-item @(ViewData["ActivePage"]?.ToString() == "EventBookings" ? "active" : "")">
                     <i class="fa-solid fa-ticket"></i> <span>Event Reservations</span>
+                </a>
+                <a href="/Staff/Chat" class="nav-item @(ViewData["ActivePage"]?.ToString() == "Chat" ? "active" : "")" id="chatNavItem">
+                    <i class="fa-solid fa-headset"></i> <span>Chat Support</span>
+                    <span class="nav-unread-badge" id="chatUnreadBadge" style="display:none"></span>
                 </a>
                 @if (isAdmin)
                 {
@@ -107,6 +112,35 @@
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        @* ── SIDEBAR CHAT NOTIFICATIONS ────────────────────────────────────
+           Polls the Staff/Chat page every 10 seconds to get the total number 
+           of unread customer messages. This runs on every staff page so they
+           know when customers need help, even if they aren't on the chat page. *@
+        (async function pollChatUnread() {
+            try {
+                @* Fetch current unread count from the server *@
+                const res  = await fetch('/Staff/Chat?handler=UnreadCount');
+                const data = await res.json();
+                const badge = document.getElementById('chatUnreadBadge');
+                
+                if (badge) {
+                    @* If there are unread messages, show the red badge with the number *@
+                    if (data.count > 0) {
+                        badge.textContent = data.count;
+                        badge.style.display = 'inline-block';
+                    } else {
+                        @* Hide the badge if all messages are read *@
+                        badge.style.display = 'none';
+                    }
+                }
+            } catch(e) {
+                console.error('Staff sidebar poller error:', e);
+            }
+            @* Schedule the next check in 10 seconds *@
+            setTimeout(pollChatUnread, 10000);
+        })();
+    </script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

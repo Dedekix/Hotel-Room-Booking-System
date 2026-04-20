@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="~/css/home.css" />
     <link rel="stylesheet" href="~/css/login.css" />
     <link rel="stylesheet" href="~/HotelBookingSystem.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/Chat.css" asp-append-version="true" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
     <script src="~/js/site.js" asp-append-version="true" defer></script>
 </head>
@@ -89,6 +90,34 @@
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+
+    @* ── CUSTOMER CHAT BUBBLE ──────────────────────────────────────────
+       This logic renders a floating gold button on every public page for
+       logged-in CUSTOMER users. It allows them to quickly jump into chat. *@
+    @if (_chatRole == "CUSTOMER")
+    {
+        <a href="/Customer/Chat" class="chat-bubble-btn" title="Chat with Support" id="chatBubble">
+            <i class="fa-solid fa-headset"></i>
+            @* A red pulsing dot that shows only when there are unread staff replies *@
+            <span class="chat-bubble-dot" id="chatDot" style="display:none"></span>
+        </a>
+        <script>
+            @* checkUnread: Lightweight poller that runs every 8 seconds to decide
+               whether to show the red dot. It calls a special 'HasUnread' handler
+               on the Chat page model. *@
+            (async function checkUnread() {
+                try {
+                    const res  = await fetch('/Customer/Chat?handler=HasUnread');
+                    const data = await res.json();
+                    @* Update the UI based on the JSON response { hasUnread: true/false } *@
+                    document.getElementById('chatDot').style.display = data.hasUnread ? 'block' : 'none';
+                } catch(e) {
+                    console.error('Chat poller error:', e);
+                }
+                setTimeout(checkUnread, 8000);
+            })();
+        </script>
+    }
 
     @await RenderSectionAsync("Scripts", required: false)
 </body>

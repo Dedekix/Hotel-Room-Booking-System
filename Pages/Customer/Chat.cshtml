@@ -1,0 +1,393 @@
+@* ============================================================
+   Customer/Chat.cshtml  —  Customer-facing Live Chat Page
+   ============================================================
+   This page provides the customer's side of the chat support interface.
+   It renders the full message history on load (using Model.Messages),
+   then keeps the conversation live with a 3-second JavaScript polling
+   loop that calls /Customer/Chat?handler=Poll.
+
+   For sending, the page uses a multipart FormData POST (not JSON) so
+   that text and file attachments can travel in the same request.
+   ============================================================ *@
+@page
+@model HotelBookingSystem.Pages.Customer.ChatModel
+@{
+    Layout = "_Layout";              @* Use the public customer layout with nav bar *@
+    ViewData["Title"] = "Chat Support";
+
+    @* lastId tracks the highest chatId already rendered on the page.
+       The JS poll sends this as the 'after' parameter so only NEW messages
+       are fetched, avoiding re-downloading the whole history every 3 s. *@
+    int lastId = Model.Messages.Any() ? Model.Messages.Last().ChatId : 0;
+
+    @* myId is embedded into JavaScript so the renderBubble() function
+       can tell whether a message was sent by the current user (right bubble)
+       or received from someone else (left bubble). *@
+    int myId   = Model.CurrentUserId;
+}
+
+@* ── Scripts section ──────────────────────────────────────────────────
+   Injected into the <Scripts> placeholder defined in _Layout.cshtml.
+   Contains: Chat.css link, scoped overide styles, and all JS logic. *@
+@section Scripts {
+<link rel="stylesheet" href="~/css/Chat.css" asp-append-version="true" />
+<style>
+    body { background: #f2efe9; } /* Consistent warm background across the page */
+
+    /* ── Attachment toolbar ── input row that holds the text area + buttons */
+    .chat-input-wrapper { display: flex; flex-direction: column; flex: 1; gap: 6px; }
+    .input-row          { display: flex; align-items: flex-end; gap: 10px; }
+    .attachment-buttons { display: flex; gap: 6px; }
+    .attachment-btn {
+        width: 36px; height: 36px; border-radius: 10px;
+        border: 1.5px solid #e8e4de; background: white;
+        color: #888; cursor: pointer; display: flex;
+        align-items: center; justify-content: center;
+        font-size: 14px; transition: all .18s; flex-shrink: 0;
+    }
+    .attachment-btn:hover { border-color: #b07a2a; color: #b07a2a; background: #fdf5e6; }
+
+    /* File preview strip */
+    .file-preview-strip {
+        display: none; align-items: center; gap: 10px;
+        padding: 8px 12px; background: #fdf5e6;
+        border-radius: 10px; border: 1px solid #f0ddb8;
+        font-size: 13px; color: #1a1a1a;
+    }
+    .file-preview-strip img { width:44px; height:44px; object-fit:cover; border-radius:8px; flex-shrink:0; }
+    .file-preview-strip .file-icon { font-size:28px; color:#b07a2a; flex-shrink:0; }
+    .file-preview-strip .file-name { flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .file-preview-strip .remove-btn { color:#e74c3c; background:none; border:none; cursor:pointer; font-size:16px; }
+
+    /* Progress bar */
+    .upload-progress { height: 3px; background: #f0ece6; border-radius: 2px; overflow: hidden; }
+    .upload-progress-fill { height: 100%; background: linear-gradient(90deg,#b07a2a,#e0a84a); width: 0; transition: width .2s; }
+
+    /* Attachment in bubble */
+    .chat-attachment-img {
+        max-width: 220px; max-height: 220px; border-radius: 10px;
+        margin-top: 6px; cursor: pointer; display: block;
+        border: 1px solid rgba(0,0,0,0.08);
+        transition: opacity .15s;
+    }
+    .chat-attachment-img:hover { opacity: .88; }
+    .chat-attachment-doc {
+        display: flex; align-items: center; gap: 10px;
+        padding: 10px 14px; border-radius: 10px; margin-top: 6px;
+        text-decoration: none; font-size: 13px; font-weight: 600;
+        background: rgba(0,0,0,0.07); color: inherit;
+        transition: background .15s;
+    }
+    .chat-attachment-doc:hover { background: rgba(0,0,0,0.13); }
+    .chat-msg.sent  .chat-attachment-doc { background: rgba(255,255,255,0.2); color: white; }
+    .chat-msg.sent  .chat-attachment-doc:hover { background: rgba(255,255,255,0.3); }
+</style>
+<script>
+    // ── State variables ────────────────────────────────────────────────────
+    // lastId: the highest chatId the browser has already rendered.
+    //   Passed as 'after' to the poll endpoint so only NEW rows are returned.
+    let lastId    = @lastId;  // Razor embeds the server-side value at render time
+    const myId    = @myId;   // Current customer's userId (used to determine bubble side)
+    let currentFile = null;  // Holds the File object selected for upload (or null if none)
+
+    const area      = document.getElementById('chatArea');
+    const input     = document.getElementById('chatInput');
+    const sendBtn   = document.getElementById('sendBtn');
+    const preview   = document.getElementById('filePreview');
+    const progWrap  = document.getElementById('progressWrap');
+    const progFill  = document.getElementById('progressFill');
+
+    // scrollBottom: keeps the conversation scrolled to the latest message.
+    // Called after initial render and after every new message is appended.
+    function scrollBottom() { area.scrollTop = area.scrollHeight; }
+    scrollBottom(); // Scroll to bottom on first page load
+
+    /* ── renderAttachment(url) ────────────────────────────────────────────
+       Converts an attachment URL into the appropriate HTML snippet:
+         - Images (jpg/jpeg/png/gif/webp) → <img> tag, clickable to view full size
+         - Any other file type            → styled download link with file icon
+       Returns an empty string if url is null/undefined. *@/
+    function renderAttachment(url) {
+        if (!url) return '';
+        const ext   = url.split('.').pop().toLowerCase();
+        const imgs   = ['jpg','jpeg','png','gif','webp'];
+        const name   = decodeURIComponent(url.split('/').pop().replace(/^[a-f0-9-]{36}/, '').replace(/^_/, ''));
+        if (imgs.includes(ext)) {
+            return `<img class="chat-attachment-img" src="${url}" alt="image"
+                        onclick="window.open('${url}','_blank')" loading="lazy">`;
+        }
+        return `<a class="chat-attachment-doc" href="${url}" download>
+                    <i class="fa-solid fa-file"></i>
+                    <span>${escHtml(name || 'File')}</span>
+                    <i class="fa-solid fa-download" style="margin-left:auto;opacity:.6"></i>
+                </a>`;
+    }
+
+    /* ── renderBubble(msg) ───────────────────────────────────────────────
+       Creates a complete chat message DOM element from a message object.
+       msg shape: { chatId, senderId, senderName, text, attachmentUrl,
+                    sentAt, isFromMe, isFromStaff }
+
+       Bubble direction:
+         isFromMe = true  → 'sent' class  → gold bubble, right-aligned
+         isFromMe = false → 'recv' class  → grey bubble, left-aligned
+
+       If both text and attachmentUrl are present, they are stacked vertically
+       inside the same bubble. */
+    function renderBubble(msg) {
+        const isMe = msg.isFromMe;  // true = this customer sent it
+        const div  = document.createElement('div');
+        div.className = 'chat-msg ' + (isMe ? 'sent' : 'recv'); // CSS controls alignment
+
+        let body = '';
+        if (msg.text) body += `<div>${escHtml(msg.text)}</div>`;
+        body += renderAttachment(msg.attachmentUrl);
+
+        div.innerHTML = `
+            <div class="chat-msg-bubble">${body}</div>
+            <div class="chat-msg-meta">
+                ${!isMe ? `<span class="chat-msg-sender">${escHtml(msg.senderName)}</span> · ` : ''}
+                ${msg.sentAt}
+            </div>`;
+        return div;
+    }
+
+    function escHtml(s) {
+        return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    /* ── poll() ──────────────────────────────────────────────────────────
+       Called every 3 seconds via setInterval to check for new messages.
+       Sends the current lastId so the server returns ONLY rows newer than
+       that ID (efficient – no re-downloading old messages).
+       On success, appends new bubbles and updates lastId to the highest
+       chatId returned. Also removes the "No messages" empty state if present. */
+    async function poll() {
+        try {
+            // Append 'after' so only messages newer than what we have are returned
+            const res  = await fetch(`/Customer/Chat?handler=Poll&after=${lastId}`);
+            const msgs = await res.json();
+            if (msgs.length) {
+                document.getElementById('emptyState')?.remove();
+                msgs.forEach(m => {
+                    area.appendChild(renderBubble(m));
+                    lastId = Math.max(lastId, m.chatId);
+                });
+                scrollBottom();
+            }
+        } catch(e) { /* silent */ }
+    }
+    setInterval(poll, 3000);
+
+    /* ── Event listeners ─────────────────────────────────────────────────
+       Two ways to trigger send:
+         1. Click the send button
+         2. Press Enter (Shift+Enter inserts a newline instead) */
+    sendBtn.addEventListener('click', sendMsg);
+    input.addEventListener('keydown', e => {
+        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); }
+    });
+
+    /* ── sendMsg() ───────────────────────────────────────────────────────
+       Builds a FormData payload (supports both text and binary file),
+       POSTs to the OnPostSendAsync handler, then immediately calls poll()
+       so the sent message appears in the chat area right away.
+       Uses multipart/form-data (not JSON) so the browser can include the
+       file binary in the same HTTP request as the text. */
+    async function sendMsg() {
+        const text = input.value.trim();
+        if (!text && !currentFile) return;
+
+        const fd = new FormData();
+        if (text)        fd.append('text', text);
+        if (currentFile) fd.append('attachment', currentFile);
+
+        input.value = '';
+        sendBtn.disabled = true;
+        if (currentFile) startProgress();
+
+        try {
+            const res = await fetch('/Customer/Chat?handler=Send', {
+                method : 'POST',
+                headers: { 'RequestVerificationToken': getToken() },
+                body   : fd
+            });
+            const data = await res.json();
+            if (!data.ok) { alert(data.error || 'Send failed'); return; }
+            clearFile();
+            await poll();
+        } catch(e) {
+            alert('Error sending. Please try again.');
+        } finally {
+            sendBtn.disabled = false;
+            stopProgress();
+            input.focus();
+        }
+    }
+
+    /* ── triggerAttach(inputId, accept) ─────────────────────────────────
+       Programmatically clicks a hidden <input type="file"> element.
+       'accept' is set before clicking so the OS dialog pre-filters to the
+       right file types (images vs. documents).  The same hidden input is
+       reused for both photo and document buttons by changing accept each time. */
+    function triggerAttach(inputId, accept) {
+        const el = document.getElementById(inputId);
+        el.accept = accept; // Update the accepted types before opening the dialog
+        el.value  = '';     // Reset so re-selecting the same file still fires onchange
+        el.onchange = e => { if (e.target.files[0]) handleFile(e.target.files[0]); };
+        el.click();
+    }
+
+    /* ── handleFile(file) ────────────────────────────────────────────────
+       Called when the user selects a file from the OS dialog.
+       Validates the size client-side (avoids wasting bandwidth on oversize uploads),
+       stores the File object in currentFile, and renders a preview strip:
+         - Images: shows a 44×44 thumbnail using FileReader
+         - Other:  shows a generic file icon + filename */
+    function handleFile(file) {
+        if (file.size > 10 * 1024 * 1024) { alert('Max file size is 10 MB.'); return; } // Client-side size guard
+        currentFile = file; // Store so sendMsg() can append it to the FormData
+        const previewContent = document.getElementById('filePreviewContent');
+        const fileName       = document.getElementById('fileName');
+
+        if (file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = e => {
+                previewContent.innerHTML = `<img src="${e.target.result}" style="width:44px;height:44px;object-fit:cover;border-radius:8px">`;
+            };
+            reader.readAsDataURL(file);
+        } else {
+            previewContent.innerHTML = `<i class="fa-solid fa-file file-icon"></i>`;
+        }
+        fileName.textContent = file.name;
+        preview.style.display = 'flex';
+    }
+
+    function clearFile() {
+        currentFile = null;
+        preview.style.display = 'none';
+        document.getElementById('filePreviewContent').innerHTML = '';
+        document.getElementById('fileName').textContent = '';
+    }
+
+    function startProgress() {
+        progWrap.style.display = 'block'; progFill.style.width = '0';
+        let w = 0;
+        window._prog = setInterval(() => { w = Math.min(w + 12, 88); progFill.style.width = w + '%'; }, 200);
+    }
+    function stopProgress() {
+        clearInterval(window._prog);
+        progFill.style.width = '100%';
+        setTimeout(() => { progWrap.style.display = 'none'; progFill.style.width = '0'; }, 300);
+    }
+
+    function getToken() {
+        return document.querySelector('input[name="__RequestVerificationToken"]')?.value ?? '';
+    }
+
+    window.triggerAttach = triggerAttach;
+    window.clearFile     = clearFile;
+</script>
+}
+
+<div class="chat-page-wrap">
+    <!-- Header -->
+    <div class="chat-page-header">
+        <div class="chat-page-header-icon"><i class="fa-solid fa-headset"></i></div>
+        <div class="chat-page-header-text">
+            <h1>Chat Support</h1>
+            <p>Our team is here to help. You can send messages, photos, and documents.</p>
+        </div>
+    </div>
+
+    @Html.AntiForgeryToken()
+
+    <!-- Chat Window -->
+    <div class="chat-window">
+        <div class="chat-messages-area" id="chatArea">
+            @if (!Model.Messages.Any())
+            {
+                <div class="chat-empty" id="emptyState">
+                    <i class="fa-regular fa-comments"></i>
+                    <p>No messages yet. Say hello!<br><small>Our staff will reply as soon as possible.</small></p>
+                </div>
+            }
+            @foreach (var m in Model.Messages)
+            {
+                <div class="chat-msg @(m.IsFromMe ? "sent" : "recv")">
+                    <div class="chat-msg-bubble">
+                        @if (!string.IsNullOrEmpty(m.Text))
+                        {
+                            <div>@m.Text</div>
+                        }
+                        @if (!string.IsNullOrEmpty(m.AttachmentUrl))
+                        {
+                            var ext = System.IO.Path.GetExtension(m.AttachmentUrl).ToLower().TrimStart('.');
+                            string[] imgs = { "jpg","jpeg","png","gif","webp" };
+                            if (imgs.Contains(ext))
+                            {
+                                <img class="chat-attachment-img"
+                                     src="@m.AttachmentUrl" alt="image"
+                                     onclick="window.open('@m.AttachmentUrl','_blank')" loading="lazy" />
+                            }
+                            else
+                            {
+                                var docName = System.IO.Path.GetFileName(m.AttachmentUrl);
+                                <a class="chat-attachment-doc" href="@m.AttachmentUrl" download>
+                                    <i class="fa-solid fa-file"></i>
+                                    <span>@docName</span>
+                                    <i class="fa-solid fa-download" style="margin-left:auto;opacity:.6"></i>
+                                </a>
+                            }
+                        }
+                    </div>
+                    <div class="chat-msg-meta">
+                        @if (!m.IsFromMe)
+                        {
+                            <span class="chat-msg-sender">@m.SenderName</span> <span>·</span>
+                        }
+                        @m.SentAt
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Input Area -->
+        <div class="chat-input-area">
+            <div class="chat-input-wrapper">
+
+                <!-- File preview strip -->
+                <div class="file-preview-strip" id="filePreview">
+                    <div id="filePreviewContent"></div>
+                    <span class="file-name" id="fileName"></span>
+                    <button class="remove-btn" onclick="clearFile()" title="Remove"><i class="fa-solid fa-times"></i></button>
+                </div>
+
+                <!-- Upload progress bar -->
+                <div class="upload-progress" id="progressWrap" style="display:none">
+                    <div class="upload-progress-fill" id="progressFill"></div>
+                </div>
+
+                <!-- Text + buttons row -->
+                <div class="input-row">
+                    <div class="attachment-buttons">
+                        <button class="attachment-btn" onclick="triggerAttach('docAttach','image/*')" title="Send photo">
+                            <i class="fa-solid fa-image"></i>
+                        </button>
+                        <button class="attachment-btn" onclick="triggerAttach('docAttach','.pdf,.doc,.docx,.txt,.xlsx,.pptx')" title="Attach document">
+                            <i class="fa-solid fa-paperclip"></i>
+                        </button>
+                    </div>
+                    <textarea id="chatInput" class="chat-input-box" rows="1"
+                              placeholder="Type a message… (Enter to send, Shift+Enter for new line)"></textarea>
+                    <button id="sendBtn" class="chat-send-btn" title="Send">
+                        <i class="fa-solid fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Hidden file inputs -->
+<input type="file" id="docAttach" style="display:none" />

@@ -92,13 +92,17 @@ CREATE TABLE ContactMessages (
 );
 
 CREATE TABLE ChatMessages (
-    chatId      INT IDENTITY(1,1) PRIMARY KEY,
-    senderId    INT NOT NULL FOREIGN KEY REFERENCES Users(userId),
-    receiverId  INT NULL FOREIGN KEY REFERENCES Users(userId),
-    messageText VARCHAR(MAX) NOT NULL,
-    sentAt      DATETIME NOT NULL DEFAULT GETDATE(),
-    isRead      BIT NOT NULL DEFAULT 0
+    chatId        INT IDENTITY(1,1) PRIMARY KEY,
+    senderId      INT NOT NULL FOREIGN KEY REFERENCES Users(userId),
+    receiverId    INT NULL FOREIGN KEY REFERENCES Users(userId),
+    messageText   VARCHAR(MAX) NOT NULL DEFAULT '',
+    attachmentUrl NVARCHAR(500) NULL,
+    sentAt        DATETIME NOT NULL DEFAULT GETDATE(),
+    isRead        BIT NOT NULL DEFAULT 0
 );
+-- Migration for existing databases:
+-- ALTER TABLE ChatMessages ADD attachmentUrl NVARCHAR(500) NULL;
+-- ALTER TABLE ChatMessages ALTER COLUMN messageText VARCHAR(MAX) NOT NULL;
 
 INSERT INTO Rooms (roomNumber, type, pricePerNight, capacity, isAvailable, description) VALUES
 -- SINGLE
