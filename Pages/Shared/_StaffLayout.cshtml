@@ -113,31 +113,30 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        @* ── SIDEBAR CHAT NOTIFICATIONS ────────────────────────────────────
-           Polls the Staff/Chat page every 10 seconds to get the total number 
-           of unread customer messages. This runs on every staff page so they
-           know when customers need help, even if they aren't on the chat page. *@
+        // SIDEBAR CHAT NOTIFICATIONS:
+        // Polls the Staff/Chat page every 10 seconds to get the total number 
+        // of unread customer messages. This runs on every staff page.
         (async function pollChatUnread() {
             try {
-                @* Fetch current unread count from the server *@
+                // Fetch current unread count from the server
                 const res  = await fetch('/Staff/Chat?handler=UnreadCount');
                 const data = await res.json();
                 const badge = document.getElementById('chatUnreadBadge');
                 
                 if (badge) {
-                    @* If there are unread messages, show the red badge with the number *@
+                    // If there are unread messages, show the red badge
                     if (data.count > 0) {
                         badge.textContent = data.count;
                         badge.style.display = 'inline-block';
                     } else {
-                        @* Hide the badge if all messages are read *@
+                        // Hide the badge if all messages are read
                         badge.style.display = 'none';
                     }
                 }
             } catch(e) {
                 console.error('Staff sidebar poller error:', e);
             }
-            @* Schedule the next check in 10 seconds *@
+            // Schedule the next check in 10 seconds
             setTimeout(pollChatUnread, 10000);
         })();
     </script>

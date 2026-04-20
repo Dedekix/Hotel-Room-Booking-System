@@ -206,18 +206,18 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
     <script>
         (function() {
-            @* State: customerId and polling cursor (lastId) *@
+            // State: customerId and polling cursor (lastId)
             const customerId = @activeCustomerId;
             if (!customerId) return;
 
-            let lastId = @lastId;      @* Razor embeds the initial lastId from server state *@
-            let currentFile = null;    @* Local File object for the pending broadcast attachment *@
+            let lastId = @lastId;      // Razor embeds the initial lastId from server state
+            let currentFile = null;    // Local File object for the pending broadcast attachment
 
             const area    = document.getElementById('chatArea');
             const input   = document.getElementById('chatInput');
             const sendBtn = document.getElementById('sendBtn');
 
-            @* Keep messages scrolled to latest on load and updates *@
+            // Keep messages scrolled to latest on load and updates
             function scrollBottom() {
                 if (area) area.scrollTop = area.scrollHeight;
             }
@@ -229,7 +229,7 @@
                 return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
             }
 
-            @* renderBubble: Dynamically builds the HTML for a single chat message object returned by polling *@
+            // renderBubble: Dynamically builds the HTML for a single chat message object returned by polling
             function renderBubble(msg) {
                 const div = document.createElement('div');
                 div.className = 'chat-msg ' + (msg.isFromStaff ? 'sent' : 'recv');
@@ -289,9 +289,9 @@
                 }
             }
 
-            setInterval(poll, 3000); @* Start polling loop *@
+            setInterval(poll, 3000); // Start polling loop
 
-            @* sendMessage: Uses FormData (multipart/form-data) to support text + file upload in one request *@
+            // sendMessage: Uses FormData (multipart/form-data) to support text + file upload in one request
             async function sendMessage(text = null) {
                 const messageText = text || (input ? input.value.trim() : '');
                 if (!messageText && !currentFile) return;
@@ -305,7 +305,7 @@
                 if (sendBtn) sendBtn.disabled = true;
 
                 if (currentFile) {
-                    showProgress(); @* Show animation for file uploads *@
+                    showProgress(); // Show animation for file uploads
                 }
 
                 try {
@@ -463,7 +463,7 @@
             window.attachFile = attachFile;
             window.removeAttachment = removeAttachment;
 
-            poll(); @* Kick off polling immediately *@
+            poll(); // Kick off polling immediately
         })();
     </script>
 }

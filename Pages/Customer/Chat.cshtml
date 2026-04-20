@@ -102,11 +102,11 @@
     function scrollBottom() { area.scrollTop = area.scrollHeight; }
     scrollBottom(); // Scroll to bottom on first page load
 
-    /* ── renderAttachment(url) ────────────────────────────────────────────
-       Converts an attachment URL into the appropriate HTML snippet:
-         - Images (jpg/jpeg/png/gif/webp) → <img> tag, clickable to view full size
-         - Any other file type            → styled download link with file icon
-       Returns an empty string if url is null/undefined. *@/
+        /* ── renderAttachment(url) ────────────────────────────────────────────
+           Converts an attachment URL into the appropriate HTML snippet:
+             - Images (jpg/jpeg/png/gif/webp) → <img> tag, clickable to view full size
+             - Any other file type            → styled download link with file icon
+           Returns an empty string if url is null/undefined. */
     function renderAttachment(url) {
         if (!url) return '';
         const ext   = url.split('.').pop().toLowerCase();

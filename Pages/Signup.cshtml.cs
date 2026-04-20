@@ -73,7 +73,7 @@ namespace HotelBookingSystem.Pages
                     conn.Close();
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 ErrorMessage = "Something went wrong. Please try again.";
                 return Page();
