@@ -113,7 +113,7 @@ Traditional hotel booking methods require customers to call or physically visit 
 | `ContactMessages` | Customer contact form submissions |
 | `OtpCodes` | OTP schema (runtime OTP stored in session) |
 | `Payments` | Payment records for room bookings and event reservations |
-| `Reports` | reports are generated dynamically) |
+| `Reports` | Report storage (schema defined; reports are generated dynamically and not persisted to this table) |
 | `ChatMessages` | Customer-staff live chat messages and file attachments |
 
 ---
