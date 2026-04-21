@@ -1,3 +1,4 @@
+using HotelBookingSystem.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Data.SqlClient;
@@ -7,7 +8,13 @@ namespace HotelBookingSystem.Pages.Customer
     public class PaymentModel : PageModel
     {
         private readonly string _conn;
-        public PaymentModel(string connectionString) => _conn = connectionString;
+        private readonly OtpEmailService _emailService;
+
+        public PaymentModel(string connectionString, OtpEmailService emailService)
+        {
+            _conn         = connectionString;
+            _emailService = emailService;
+        }
 
         // What we're paying for
         public string  BookingType    { get; set; } = ""; // "ROOM" or "EVENT"
@@ -70,6 +77,10 @@ namespace HotelBookingSystem.Pages.Customer
                         "UPDATE Bookings SET status = 'CONFIRMED' WHERE bookingId = @id", conn);
                     upd.Parameters.AddWithValue("@id", BookingId);
                     upd.ExecuteNonQuery();
+
+                    var userEmail = GetUserEmail(conn);
+                    if (userEmail != null)
+                        _emailService.PublishReceipt(userEmail, "ROOM", Summary, Amount);
                 }
             }
             else
@@ -89,10 +100,23 @@ namespace HotelBookingSystem.Pages.Customer
                         "UPDATE EventBookings SET status = 'CONFIRMED' WHERE eventBookingId = @id", conn);
                     upd.Parameters.AddWithValue("@id", BookingId);
                     upd.ExecuteNonQuery();
+
+                    var userEmail = GetUserEmail(conn);
+                    if (userEmail != null)
+                        _emailService.PublishReceipt(userEmail, "EVENT", Summary, Amount);
                 }
             }
 
             return RedirectToPage("/Customer/BookingConfirmed", new { type, id, paid = !isInPerson });
+        }
+
+        private string? GetUserEmail(SqlConnection conn)
+        {
+            var userId = HttpContext.Session.GetString("UserId");
+            if (userId == null) return null;
+            using var cmd = new SqlCommand("SELECT email FROM Users WHERE userId = @id", conn);
+            cmd.Parameters.AddWithValue("@id", int.Parse(userId));
+            return cmd.ExecuteScalar()?.ToString();
         }
 
         private bool LoadSummary()

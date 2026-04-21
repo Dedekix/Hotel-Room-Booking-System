@@ -25,5 +25,17 @@ namespace HotelBookingSystem.Services
 
             producer.Send(session.CreateTextMessage($"{toEmail}|{otp}"));
         }
+
+        public void PublishReceipt(string toEmail, string bookingType, string summary, decimal amount)
+        {
+            var factory = new ConnectionFactory(_brokerUri);
+            using var conn    = factory.CreateConnection();
+            using var session = conn.CreateSession(AcknowledgementMode.AutoAcknowledge);
+            var dest          = session.GetQueue("receipt.queue");
+            using var producer = session.CreateProducer(dest);
+            conn.Start();
+
+            producer.Send(session.CreateTextMessage($"{toEmail}|{bookingType}|{summary}|{amount}"));
+        }
     }
 }
