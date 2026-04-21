@@ -35,7 +35,9 @@ namespace HotelBookingSystem.Pages.Customer
             return Page();
         }
 
-        public IActionResult OnPost(string type, int id, string method)
+        public IActionResult OnPost(string type, int id, string method,
+            string? cardName, string? cardNumber, string? cardExpiry, string? cardCvv,
+            string? mobilePhone)
         {
             if (string.IsNullOrEmpty(HttpContext.Session.GetString("UserId")))
                 return Redirect("/Login");
@@ -52,6 +54,24 @@ namespace HotelBookingSystem.Pages.Customer
             if (string.IsNullOrWhiteSpace(method))
             {
                 ErrorMessage = "Please select a payment method.";
+                return Page();
+            }
+
+            if (method == "Credit Card" || method == "Debit Card")
+            {
+                if (string.IsNullOrWhiteSpace(cardName))
+                    { ErrorMessage = "Cardholder name is required."; return Page(); }
+                if (string.IsNullOrWhiteSpace(cardNumber) || cardNumber.Replace(" ", "").Length < 16)
+                    { ErrorMessage = "A valid 16-digit card number is required."; return Page(); }
+                if (string.IsNullOrWhiteSpace(cardExpiry))
+                    { ErrorMessage = "Expiry date is required."; return Page(); }
+                if (string.IsNullOrWhiteSpace(cardCvv) || cardCvv.Length < 3)
+                    { ErrorMessage = "A valid 3-digit CVV is required."; return Page(); }
+            }
+
+            if (method == "Mobile Money" && string.IsNullOrWhiteSpace(mobilePhone))
+            {
+                ErrorMessage = "Phone number is required for Mobile Money.";
                 return Page();
             }
 
