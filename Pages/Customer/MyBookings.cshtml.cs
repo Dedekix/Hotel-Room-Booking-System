@@ -135,7 +135,7 @@ namespace HotelBookingSystem.Pages.Customer
             using var conn = new SqlConnection(_conn);
             conn.Open();
             using var cmd = new SqlCommand(
-                "UPDATE Bookings SET status = 'CANCELLED' WHERE bookingId = @id AND userId = @uid AND status = 'CONFIRMED'", conn);
+                "UPDATE Bookings SET status = 'CANCELLED' WHERE bookingId = @id AND userId = @uid AND status = 'PENDING'", conn);
             cmd.Parameters.AddWithValue("@id",  bookingId);
             cmd.Parameters.AddWithValue("@uid", int.Parse(userId));
             cmd.ExecuteNonQuery();

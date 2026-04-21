@@ -93,7 +93,7 @@
                                 </div>
                             </div>
                         </div>
-                        @if (b.Status != "CANCELLED" && b.Status != "CHECKED_IN" && b.Status != "CHECKED_OUT" && b.Status != "COMPLETED")
+                        @if (b.Status == "PENDING")
                         {
                             <div class="booking-card-action">
                                 <form method="post" asp-page-handler="CancelRoom">
